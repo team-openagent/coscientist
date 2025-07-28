@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'view/home_screen.dart';
 
-
 void main() {
   runApp(const MyApp());
 }
@@ -20,10 +19,11 @@ class MyApp extends StatelessWidget {
           primaryContainer: Colors.teal.shade50,
         ),
         navigationRailTheme: NavigationRailThemeData(
-          backgroundColor: Colors.teal.shade50,
+          backgroundColor: Colors.grey.shade300,
           selectedIconTheme: const IconThemeData(color: Colors.teal),
           selectedLabelTextStyle: const TextStyle(color: Colors.teal),
           minWidth: 52,
+          useIndicator: false,
         ),
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.teal.shade50,

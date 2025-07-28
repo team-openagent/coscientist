@@ -32,15 +32,14 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('AI Co-scientist'),
         toolbarHeight: 32,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(8), 
-          child: const Divider(
-            height: 1.0, 
-            thickness: 1.0, 
-          ),
+          preferredSize: const Size.fromHeight(8),
+          child: const Divider(height: 1.0, thickness: 1.0),
         ),
         actions: [
           IconButton(
-            icon: _isRightPanelVisible ? const Icon(Icons.keyboard_double_arrow_right) : const Icon(Icons.keyboard_double_arrow_left),
+            icon: _isRightPanelVisible
+                ? const Icon(Icons.keyboard_double_arrow_right)
+                : const Icon(Icons.keyboard_double_arrow_left),
             onPressed: _toggleRightPanel,
           ),
         ],
@@ -87,19 +86,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const VerticalDivider(thickness: 1, width: 1),
           // This is the main content.
-          Expanded(
-            child: Stack(
-              children: [
-                _views[_selectedIndex],
-              ],
-            ),
-          ),
+          Expanded(child: Stack(children: [_views[_selectedIndex]])),
           const VerticalDivider(thickness: 1, width: 1),
           if (_isRightPanelVisible)
-            SizedBox(
-              width: 300,
-              child: RightPanelView(),
-            ),
+            SizedBox(width: 300, child: RightPanelView()),
         ],
       ),
     );

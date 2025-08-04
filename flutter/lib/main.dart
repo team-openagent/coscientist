@@ -16,7 +16,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.teal,
-          primaryContainer: Colors.teal.shade50,
+          primaryContainer: Colors.white,
+          surface: Colors.grey.shade100
         ),
         navigationRailTheme: NavigationRailThemeData(
           backgroundColor: Colors.grey.shade300,
@@ -26,8 +27,7 @@ class MyApp extends StatelessWidget {
           useIndicator: false,
         ),
         appBarTheme: AppBarTheme(
-          backgroundColor: Colors.teal.shade50,
-          foregroundColor: Colors.teal.shade50,
+          backgroundColor: Colors.grey.shade300,
         ),
         inputDecorationTheme: const InputDecorationTheme(
           hintStyle: TextStyle(fontSize: 14),

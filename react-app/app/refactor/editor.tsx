@@ -17,6 +17,7 @@ export interface Reference {
 }
 
 export default function Editor() {
+  // Sample data - in real app, this would come from API/database
   const [references, setReferences] = useState<Reference[]>([
     {
       id: '1',
@@ -52,15 +53,7 @@ export default function Editor() {
   const [isReferencePanelCollapsed, setIsReferencePanelCollapsed] = useState(false);
   const [isChatPanelCollapsed, setIsChatPanelCollapsed] = useState(false);
 
-  const addReference = (reference: Omit<Reference, 'id' | 'createdAt'>) => {
-    const newReference: Reference = {
-      ...reference,
-      id: Date.now().toString(),
-      createdAt: new Date()
-    };
-    setReferences(prev => [...prev, newReference]);
-  };
-
+  // Reference management functions
   const removeReference = (id: string) => {
     setReferences(prev => prev.filter(ref => ref.id !== id));
     setSelectedReferences(prev => prev.filter(refId => refId !== id));
@@ -74,19 +67,32 @@ export default function Editor() {
     );
   };
 
+  // Panel collapse handlers
+  const toggleReferencePanel = () => setIsReferencePanelCollapsed(!isReferencePanelCollapsed);
+  const toggleChatPanel = () => setIsChatPanelCollapsed(!isChatPanelCollapsed);
+
+  // Common button styles for collapse buttons
+  const collapseButtonStyles = "absolute top-4 z-10 p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors";
+  
+  // Common panel styles
+  const panelStyles = "transition-all duration-300";
+  const collapsedWidth = "w-12";
+  const expandedWidth = "w-1/4";
+
   return (
     <div className="h-screen bg-gray-50 relative">
       <div className="h-full flex">
-        {/* Collapse/Expand Button */}
+        {/* Reference Panel Toggle Button */}
         <button
-          onClick={() => setIsReferencePanelCollapsed(!isReferencePanelCollapsed)}
-          className="absolute top-4 left-2 z-10 p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+          onClick={toggleReferencePanel}
+          className={`${collapseButtonStyles} left-2`}
           title={isReferencePanelCollapsed ? "Expand panel" : "Collapse panel"}
         >
           <ViewColumnsIcon className="w-6 h-6"/>
         </button>
+
         {/* Left Panel - Reference Management */}
-        <div className={`transition-all duration-300 ${isReferencePanelCollapsed ? 'w-12' : 'w-2/9'}`}>
+        <div className={`${panelStyles} ${isReferencePanelCollapsed ? collapsedWidth : expandedWidth}`}>
           {!isReferencePanelCollapsed && (
             <ReferenceManagement
               references={references}
@@ -96,7 +102,6 @@ export default function Editor() {
             />
           )}
         </div>
-        
         {/* Middle Panel - Paper Editor */}
         <div className="flex-1">
           <PaperEditor
@@ -107,7 +112,7 @@ export default function Editor() {
         </div>
         
         {/* Right Panel - AI Chat */}
-        <div className={`transition-all duration-300 ${isChatPanelCollapsed ? 'w-12' : 'w-2/9'}`}>
+        <div className={`${panelStyles} ${isChatPanelCollapsed ? collapsedWidth : expandedWidth}`}>
           {!isChatPanelCollapsed && (
             <AIChat
               references={references}
@@ -115,11 +120,12 @@ export default function Editor() {
               onToggleReferenceSelection={toggleReferenceSelection}
             />
           )}
-          {/* Collapse/Expand Button */}
+          
+          {/* Chat Panel Toggle Button */}
           <button
-            onClick={() => setIsChatPanelCollapsed(!isChatPanelCollapsed)}
-            className="absolute top-4 right-2 p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
-            title="Expand panel"
+            onClick={toggleChatPanel}
+            className={`${collapseButtonStyles} right-2`}
+            title={isChatPanelCollapsed ? "Expand panel" : "Collapse panel"}
           >
             <ViewColumnsIcon className="w-6 h-6"/>
           </button>

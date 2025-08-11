@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@editorjs/editorjs": "^2.30.8",
+    "@editorjs/header": "^2.8.8",
+    "@editorjs/image": "^2.10.3",
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/typography": "^0.5.16",
     "next": "15.4.4",

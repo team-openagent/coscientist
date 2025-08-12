@@ -52,10 +52,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!res.ok) {
             const data = await res.json();
             console.log("Yeah: ", data);
-
             return;
           }
-          return res.json();
+          const data = await res.json();
+          console.log("Yeah: ", data);
+          return data;
         })
         });
       });

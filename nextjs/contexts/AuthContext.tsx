@@ -43,12 +43,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ idToken: token }),
+          body: JSON.stringify({
+            idToken: token,
+            refreshToken: result.user.refreshToken
+          }),
         })
         .then(async (res) => {
           if (!res.ok) {
             const data = await res.json();
             console.log("Yeah: ", data);
+
+            return;
           }
           return res.json();
         })

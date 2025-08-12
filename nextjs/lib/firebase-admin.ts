@@ -1,3 +1,5 @@
 import { getAuth } from 'firebase-admin/auth';
+import { initializeApp } from 'firebase-admin/app';
 
-export const adminAuth = getAuth();
+const app = initializeApp();
+export const adminAuth = getAuth(app);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
+
 import jwt from 'jsonwebtoken';
 
 
@@ -7,7 +8,7 @@ import jwt from 'jsonwebtoken';
 
 export async function POST(request: NextRequest) {
   try {
-    const { idToken } = await request.json();
+    const { idToken, refreshToken } = await request.json();
 
     if (!idToken) {
       return NextResponse.json(
@@ -15,17 +16,24 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    if (!refreshToken) {
+      return NextResponse.json(
+        { error: 'Refresh token is required' },
+        { status: 400 }
+      );
+    }
+
 
     // Verify the Firebase ID token
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     
-    if (!decodedToken.uid) {
-      return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
-      );
-    }
-    return NextResponse.json(decodedToken);
+    //if (!decodedToken.uid) {
+    //  return NextResponse.json(
+    //    { error: 'Invalid token' },
+    //    { status: 401 }
+    //  );
+    //}
+    return NextResponse.json({"refresh": refreshToken});
 
     // Create JWT payload
     const payload = {

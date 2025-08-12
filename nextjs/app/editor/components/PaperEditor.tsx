@@ -6,10 +6,9 @@ import {
   ShareIcon, 
   DocumentArrowDownIcon
 } from '@heroicons/react/24/outline';
-import EditorJS from '@editorjs/editorjs';
 import Header from '@editorjs/header';
+import EditorJS from '@editorjs/editorjs';
 import Image from '@editorjs/image';
-import { Reference } from '../editor';
 
 interface EditorData {
   time: number;
@@ -29,24 +28,21 @@ interface EditorData {
 interface PaperEditorProps {
   content: string;
   onContentChange: (content: string) => void;
-  selectedReferences: Reference[];
 }
 
 export default function PaperEditor({
   content,
   onContentChange,
-  selectedReferences
 }: PaperEditorProps) {
   const editorRef = useRef<EditorJS | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [editorData, setEditorData] = useState<EditorData | null>(null);
 
   // Initialize EditorJS
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (editorRef.current) return;
 
-    const editor = new EditorJS({
-      holder: containerRef.current,
+    editorRef.current = new EditorJS({
+      holder: "editorjs-container",
       data: {
         time: Date.now(),
         blocks: [
@@ -103,33 +99,8 @@ export default function PaperEditor({
       }
     });
 
-    editorRef.current = editor;
-
-    return () => {
-      if (editorRef.current) {
-        editorRef.current.destroy();
-      }
-    };
+    return () => {};
   }, []);
-
-  // Update content when prop changes
-  useEffect(() => {
-    if (editorRef.current && content && !editorData) {
-      editorRef.current.render({
-        time: Date.now(),
-        blocks: [
-          {
-            id: 'content-block',
-            type: 'paragraph',
-            data: {
-              text: content
-            }
-          }
-        ],
-        version: '2.28.2'
-      });
-    }
-  }, [content, editorData]);
 
   const handlePublish = () => {
     console.log('Publishing document...', editorData);
@@ -148,9 +119,7 @@ export default function PaperEditor({
       {/* Toolbar */}
       <div className="border-b border-gray-200 p-3 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600">
-            {selectedReferences.length > 0 && `${selectedReferences.length} references selected`}
-          </span>
+          <span className="text-sm text-gray-600"> </span>
         </div>
         
         {/* Right-aligned actions */}
@@ -182,7 +151,7 @@ export default function PaperEditor({
       {/* EditorJS Container */}
       <div className="flex-1 overflow-auto text-black">
         <div 
-          ref={containerRef} 
+          id="editorjs-container"
           className="h-full p-6"
           style={{ minHeight: 'calc(100vh - 80px)' }}
         />

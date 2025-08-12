@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { User, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 
 interface AuthContextType {
@@ -36,7 +36,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      signInWithPopup(auth, googleProvider).then((result) => {
+        const user = result.user.getIdToken().then((token) => {
+        fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ idToken: token }),
+        })
+        .then(async (res) => {
+          if (!res.ok) {
+            const data = await res.json();
+            console.log("Yeah: ", data);
+          }
+          return res.json();
+        })
+        });
+      });
     } catch (error) {
       console.error('Error signing in with Google:', error);
       throw error;

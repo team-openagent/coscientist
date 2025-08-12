@@ -1,6 +1,6 @@
 import { MongoClient, Db } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/test';
+const uri = process.env.MONGODB_URI || 'mongodb://root:secret@localhost:27017/cosicentist';
 const options = {};
 
 let client: MongoClient;

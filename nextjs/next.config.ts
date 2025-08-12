@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
+import { config } from 'dotenv';
+
+config({ path: './config/.env.development' });
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  env: {},
 };
 
 export default nextConfig;

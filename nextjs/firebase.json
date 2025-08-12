@@ -12,11 +12,6 @@
     "ui": {
       "enabled": true
     },
-    "singleProjectMode": true,
-    "apphosting": {
-      "port": 5002,
-      "rootDirectory": "./",
-      "startCommand": "npm run dev"
-    }
+    "singleProjectMode": true
   }
 }

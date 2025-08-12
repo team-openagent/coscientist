@@ -4,7 +4,7 @@ import { adminAuth } from '@/lib/firebase-admin';
 import jwt from 'jsonwebtoken';
 
 
-//const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 export async function POST(request: NextRequest) {
   try {

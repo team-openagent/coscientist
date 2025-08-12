@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth';
+import { Project, IProject} from '@/domain/model';
+
+//export async function GET(request: NextRequest) {
+//  try {
+//    const projects: IProject[] = await Project.find();
+//    return NextResponse.json(projects);
+//  } catch (error) {
+//    return NextResponse.json({ message: 'Error fetching projects', error }, { status: 500 });
+//  }
+//});
 
 export async function GET(request: NextRequest) {
   const user = getAuthenticatedUser(request);

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import app from '@/lib/firebase-admin';
 import { getAuth } from 'firebase-admin/auth';
 import jwt from 'jsonwebtoken';
-
+import { connectToDatabase } from '@/lib/mongodb';
+import { User, IUser } from '@/domain/model';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -21,6 +22,14 @@ export async function POST(request: NextRequest) {
   const decodedToken = await getAuth(app).verifyIdToken(idToken);
   const uid = decodedToken.uid;
   const email = decodedToken.email;
+  const displayName = decodedToken.name;
+
+  await connectToDatabase();
+  const user = await User.findOne({ user_id: uid });
+  if (!user) {
+    const newUser: IUser = new User({ user_id: uid, email: email, display_name: displayName});
+    await newUser.save();
+  }
 
   // Create JWT payload
   const payload = {

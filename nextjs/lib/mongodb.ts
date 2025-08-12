@@ -1,10 +1,6 @@
 import { MongoClient, Db } from 'mongodb';
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('Please add your Mongo URI to .env.local');
-}
-
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/test';
 const options = {};
 
 let client: MongoClient;
@@ -35,9 +31,4 @@ export default clientPromise;
 export async function getDb(): Promise<Db> {
   const client = await clientPromise;
   return client.db(process.env.MONGODB_DB || 'ai-coscientist');
-}
-
-export async function getCollection<T>(collectionName: string) {
-  const db = await getDb();
-  return db.collection<T>(collectionName);
 }

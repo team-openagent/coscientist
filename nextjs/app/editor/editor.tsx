@@ -107,7 +107,6 @@ export default function Editor() {
           <PaperEditor
             content={paperContent}
             onContentChange={setPaperContent}
-            selectedReferences={references.filter(ref => selectedReferences.includes(ref.id))}
           />
         </div>
         

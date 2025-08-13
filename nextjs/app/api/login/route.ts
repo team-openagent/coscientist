@@ -3,7 +3,7 @@ import app from '@/lib/firebase-admin';
 import { getAuth } from 'firebase-admin/auth';
 import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/mongodb';
-import { User, IUser } from '@/domain/model';
+import { User, IUser, Team, ITeam } from '@/domain/model';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -26,9 +26,26 @@ export async function POST(request: NextRequest) {
 
   await connectToDatabase();
   const user = await User.findOne({ user_id: uid });
+  console.log(user);
   if (!user) {
-    const newUser: IUser = new User({ user_id: uid, email: email, display_name: displayName});
+    const newUser: IUser = new User({ uid: uid, email: email, display_name: displayName});
     await newUser.save();
+
+    // Create a team named "personal" for the new user
+    const team: ITeam = new Team({
+      users: [newUser._id],
+      name: 'personal',
+      created_at: new Date(),
+      permissions: {
+        is_personal: true,
+        can_edit: true,
+        can_invite: false,
+      },
+    });
+    await team.save();
+    await User.updateOne({ _id: newUser._id }, { $push: { teams: team._id } });
+    console.log(`New user created: ${newUser.display_name}`);
+    console.log(`New team created: ${team.name}`);
   }
 
   // Create JWT payload

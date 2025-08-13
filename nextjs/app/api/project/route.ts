@@ -2,14 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth';
 import { Project, IProject} from '@/domain/model';
 
-//export async function GET(request: NextRequest) {
-//  try {
-//    const projects: IProject[] = await Project.find();
-//    return NextResponse.json(projects);
-//  } catch (error) {
-//    return NextResponse.json({ message: 'Error fetching projects', error }, { status: 500 });
-//  }
-//});
 
 export async function GET(request: NextRequest) {
   const user = getAuthenticatedUser(request);
@@ -17,6 +9,10 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('query');
   if (query === 'list') {
+    //find all project having user_id is uid 
+    const uid = user.uid;
+    const projects: IProject[] = await Project.find({ user_id: uid });
+    
     return NextResponse.json({
       user: {
         uid: user.uid,

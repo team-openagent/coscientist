@@ -41,7 +41,7 @@ export function isAuthenticated(request: NextRequest): boolean {
 /**
  * Get user ID from authenticated request
  */
-export function getUserId(request: NextRequest): string {
+export function getUID(request: NextRequest): string {
   const user = getAuthenticatedUser(request);
   return user.uid;
 }

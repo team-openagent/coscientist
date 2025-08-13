@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navigation() {
+  const { user } = useAuth();
+
   return (
     <nav className="bg-#1d1d1f backdrop-blur-sm shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,12 +24,30 @@ export default function Navigation() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <Link
-              href="/login"
-                             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
-            >
-              Sign In
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href="/projects"
+                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Projects
+                </Link>
+                <Link
+                  href="/editor"
+                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Editor
+                </Link>
+
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       </div>

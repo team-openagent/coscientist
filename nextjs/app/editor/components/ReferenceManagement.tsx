@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   PlusIcon, 
   TrashIcon, 
@@ -10,6 +10,7 @@ import { Reference } from '../editor';
 import { getTypeIcon, getTypeLabel } from '../utils/referenceUtils';
 import AddPanel from './AddPanel';
 import DiscoverPanel from './DiscoverPanel';
+import { useSearchParams } from 'next/navigation';
 
 interface ReferenceManagementProps {
   references: Reference[];
@@ -26,6 +27,22 @@ export default function ReferenceManagement({
 }: ReferenceManagementProps) {
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [showDiscoverPanel, setShowDiscoverPanel] = useState(false);
+  const [projectId, setProjectId] = useState<string>('');
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Get project ID from URL query parameter
+    const projectIdFromUrl = searchParams.get('project');
+    if (projectIdFromUrl) {
+      setProjectId(projectIdFromUrl);
+    }
+  }, [searchParams]);
+
+  const handleReferenceAdded = () => {
+    // Refresh references or notify parent component
+    // For now, we'll just close the panel
+    setShowAddPanel(false);
+  };
 
   return (
     <div className="h-full bg-white border-r border-gray-200 flex flex-col">
@@ -114,6 +131,8 @@ export default function ReferenceManagement({
         isOpen={showAddPanel} 
         onClose={() => setShowAddPanel(false)} 
         references={references}
+        projectId={projectId}
+        onReferenceAdded={handleReferenceAdded}
       />
       <DiscoverPanel 
         isOpen={showDiscoverPanel} 

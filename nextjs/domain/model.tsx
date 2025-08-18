@@ -37,7 +37,7 @@ export interface IUser extends Document {
 
 const userSchema: Schema = new Schema({
   _id: { type: Schema.Types.ObjectId, auto: true },
-  uid: { type: String, required: true },
+  uid: { type: String, required: true, unique: true },
   teams: { type: [Schema.Types.ObjectId], ref: 'Team', required: true },
   email: { type: String, required: true },
   display_name: { type: String, required: false },
@@ -52,7 +52,7 @@ export const User = mongoose.models.User || mongoose.model<IUser>('User', userSc
 export interface ITeam extends Document {
   _id: Types.ObjectId;
   users: Types.ObjectId[];
-  name: String,
+  name: string,
   created_at: Date;
   permissions: {
     is_personal: boolean;
@@ -63,7 +63,7 @@ export interface ITeam extends Document {
 
 const teamSchema: Schema = new Schema({
   _id: { type: Schema.Types.ObjectId, auto: true },
-  users: { type: [Schema.Types.ObjectId], ref: 'User', required: true },
+  users: [{ type: Schema.Types.ObjectId, ref: 'User', required: true }],
   name: { type: String, required: true },
   created_at: { type: Date, default: Date.now },
   permissions: {
@@ -78,19 +78,23 @@ export const Team = mongoose.models.Team || mongoose.model<ITeam>('Team', teamSc
 
 
 export interface IReference extends Document{
-  projects: Types.ObjectId;
+  _id: Types.ObjectId;
+  title: string;
+  project: Types.ObjectId;
+  uploader: Types.ObjectId; 
   type: 'pdf' | 'image';
   raw_data_path?: string;
-  uploader: Types.ObjectId; // UUID foreign key
   created_at: Date;
   summary?: string;
 }
 
 const referenceSchema: Schema = new Schema({
-  projects: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
+  _id: { type: Schema.Types.ObjectId, auto: true },
+  title: { type: String, reuquired: true},
+  project: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
+  uploader: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   type: { type: String, enum: ['pdf', 'image'], required: true },
   raw_data_path: { type: String, required: false },
-  uploader: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   created_at: { type: Date, default: Date.now },
   summary: { type: String, required: false }
 })
@@ -125,50 +129,4 @@ export interface ChatMessage {
     user_id?: string;
     [key: string]: string | number | boolean | undefined;
   };
-}
-
-
-// ============================================================================
-// DATABASE COLLECTION NAMES
-// ============================================================================
-
-export const COLLECTIONS = {
-  REFERENCES: 'references',
-  BLOCKS: 'blocks',
-  TOPICS: 'topics',
-  CHAT_MESSAGES: 'chat_messages',
-  PROJECTS: 'projects',
-  USERS: 'users',
-  TEAMS: 'teams'
-} as const;
-
-// ============================================================================
-// UTILITY TYPES & HELPERS
-// ============================================================================
-
-export type CollectionName = typeof COLLECTIONS[keyof typeof COLLECTIONS];
-
-export type ReferenceType = Reference['type'];
-export type BlockType = Block['type'];
-export type TeamRole = 'owner' | 'admin' | 'member' | 'viewer';
-export type ChatMessageType = ChatMessage['type'];
-
-// Helper function to generate UUID
-export function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
-
-// Helper function to create timestamps
-export function createTimestamp(): Date {
-  return new Date();
-}
-
-// Helper function to validate UUID format
-export function isValidUUID(uuid: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
 }

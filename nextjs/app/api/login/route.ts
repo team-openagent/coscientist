@@ -25,10 +25,9 @@ export async function POST(request: NextRequest) {
   const displayName = decodedToken.name;
 
   await connectToDatabase();
-  const user = await User.findOne({ user_id: uid });
-  console.log(user);
+  const user = await User.findOne({ _id: uid });
   if (!user) {
-    const newUser: IUser = new User({ uid: uid, email: email, display_name: displayName});
+    const newUser: IUser = new User({ _id: uid, email: email, display_name: displayName});
     await newUser.save();
 
     // Create a team named "personal" for the new user

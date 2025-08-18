@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify, JWTVerifyResult } from 'jose';
 
 // Define protected routes that require authentication
-const protectedRoutes = ['/api/project'];
+const protectedRoutes = ['/api/project', '/api/team'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

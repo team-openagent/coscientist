@@ -98,19 +98,16 @@ export default function AddPanel({ isOpen, onClose, references, projectId, onRef
 
       if (response.ok) {
         const result = await response.json();
-        if (result.success) {
-          // Reset form
-          setUploadedFile(null);
-          setUploadProgress(0);
-          
-          // Notify parent component
-          onReferenceAdded();
-          
-          // Close panel after successful upload
-          setTimeout(() => onClose(), 1000);
-        } else {
-          throw new Error(result.error || 'Upload failed');
-        }
+        console.log("RESULT: ", result);
+        // Reset form
+        setUploadedFile(null);
+        setUploadProgress(0);
+        
+        // Notify parent component
+        onReferenceAdded();
+        
+        // Close panel after successful upload
+        setTimeout(() => onClose(), 1000);
       } else {
         throw new Error('Upload failed');
       }

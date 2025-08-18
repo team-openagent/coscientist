@@ -6,7 +6,7 @@ import {
   TrashIcon, 
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
-import { Reference } from '../editor';
+import { Reference } from '../page';
 import { getTypeIcon, getTypeLabel } from '../utils/referenceUtils';
 import AddPanel from './AddPanel';
 import DiscoverPanel from './DiscoverPanel';
@@ -27,16 +27,8 @@ export default function ReferenceManagement({
 }: ReferenceManagementProps) {
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [showDiscoverPanel, setShowDiscoverPanel] = useState(false);
-  const [projectId, setProjectId] = useState<string>('');
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    // Get project ID from URL query parameter
-    const projectIdFromUrl = searchParams.get('project');
-    if (projectIdFromUrl) {
-      setProjectId(projectIdFromUrl);
-    }
-  }, [searchParams]);
+  const projectId = searchParams.get('project');
 
   const handleReferenceAdded = () => {
     // Refresh references or notify parent component
@@ -131,7 +123,7 @@ export default function ReferenceManagement({
         isOpen={showAddPanel} 
         onClose={() => setShowAddPanel(false)} 
         references={references}
-        projectId={projectId}
+        projectId={projectId!}
         onReferenceAdded={handleReferenceAdded}
       />
       <DiscoverPanel 

@@ -51,14 +51,16 @@ export async function POST(
       await connectToDatabase();
       
       const user: IUser | null = await User.findOne({uid: uid});
-      const project = await Project.findOne({_id: project_id}).populate('team').exec();
+      const project = await Project.findOne({_id: project_id}).populate('team');
       if (!project) {
         return NextResponse.json(
           { success: false, error: 'Project not found' },
           { status: 404 }
         );
       }
-      const isTeamMember = (project.team.users as Types.ObjectId[]).includes(user!._id);
+
+      const team = project.team;
+      const isTeamMember = (team.users as Types.ObjectId[]).includes(user!._id);
       if (!isTeamMember) {
         return NextResponse.json(
           { success: false, error: 'User does not have permission to add references to this project' },
@@ -66,13 +68,12 @@ export async function POST(
         );
       }
 
-
       const reference = new Reference({
-        title,
+        title: title,
+        project: project!._id,
+        uploader: user!._id,
         type: type || (file.type === 'application/pdf' ? 'pdf' : 'image'),
         raw_data_path: `/uploads/references/${Date.now()}_${file.name}`,
-        uploader: uid,
-        project_id: project_id
       });
       
       // Save reference to database
@@ -80,9 +81,7 @@ export async function POST(
       
       // TODO: Implement actual file storage (e.g., to cloud storage or local filesystem)
       // For now, we're just storing the metadata
-      
       return NextResponse.json({
-        success: true,
         data: {
           reference: savedReference,
           message: 'Reference created successfully. File storage implementation needed.'
@@ -104,22 +103,22 @@ export async function POST(
       await connectToDatabase();
       
       // Create reference object
-      const reference = new Reference({
-        title: body.title,
-        url: body.url,
-        description: body.description || '',
-        type: body.type || 'web',
-        tags: body.tags || [],
-        project_id: project_id
+      const uploader = await User.findOne({uid: uid})!.select('_id');
+      console.log("UPLOADER: ", uploader!._id);
+      const newReference: IReference = new Reference({
+        project: project_id,
+        uploader: uploader,
+        type: body.type,
+        //raw_data_path: body.url,
       });
       
       // Save reference to database
-      const savedReference = await reference.save();
+      newReference.save();
       
       return NextResponse.json({
         success: true,
         data: {
-          reference: savedReference
+          reference: newReference
         }
       });
     }
@@ -133,10 +132,8 @@ export async function POST(
   }
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { project_id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ project_id: string }> }) {
+  const params = await props.params;
   try {
     const { project_id } = params;
     await connectToDatabase();

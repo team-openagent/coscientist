@@ -5,20 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import CreateProjectModal from '@/app/projects/components/CreateProjectModal';
 import ProjectCard from '@/app/projects/components/ProjectCard';
 import LeftPanel from '@/app/projects/components/LeftPanel';
-import { IProject } from '@/domain/model';
+import { IProject, ITeam } from '@/domain/model';
 
-// Local interface for team display (not the full ITeam from database)
-interface LocalTeam {
-  _id: string;
-  name: string;
-  users: string[];
-  created_at: Date;
-  permissions: {
-    is_personal: boolean;
-    can_edit: boolean;
-    can_invite: boolean;
-  }
-}
 
 export default function ProjectsPage() {
   const { user } = useAuth();
@@ -26,39 +14,57 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'recent' | LocalTeam>("recent");
+  const [activeTab, setActiveTab] = useState<'recent' | ITeam>("recent");
+  const [teams, setTeams] = useState<ITeam[]>([]);
 
   useEffect(() => {
     if (user) {
-      fetchProjects();
+      try {
+        setLoading(true);
+        fetchProjects();
+        fetchTeams();
+      } finally {
+        setLoading(false);
+      }
     }
   }, [user]);
 
+
+
   const fetchProjects = async () => {
     try {
-      setLoading(true);
-      const response = await fetch('/api/project/list');
+      const response = await fetch('/api/project?query=recent');
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch projects');
-      }
+      if (!response.ok) { throw new Error('Failed to fetch projects'); }
       
       const data = await response.json();
       if (data.success) {
-        setProjects(data.data.projects);
+        setProjects(data.projects);
       } else {
         setError(data.error || 'Failed to fetch projects');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleCreateProject = async (projectData: { name: string; description: string; is_public: boolean }) => {
+  const fetchTeams = async () => {
     try {
-      const response = await fetch('/api/project/list', {
+      const response = await fetch('/api/team');
+      const data = await response.json();
+      if (data.success) {
+        setTeams(data.teams);
+      } else {
+        setError(data.error || 'Failed to fetch teams');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
+
+  const handleCreateProject = async (projectData: { name: string; team_id: string; }) => {
+    try {
+      const response = await fetch('/api/project', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +78,6 @@ export default function ProjectsPage() {
 
       const data = await response.json();
       if (data.success) {
-        // Refresh the projects list
         await fetchProjects();
         setShowCreateModal(false);
       } else {
@@ -94,11 +99,17 @@ export default function ProjectsPage() {
     );
   }
 
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Left Panel */}
-      <LeftPanel activeTab={activeTab} setActiveTab={setActiveTab} />
-      
+      <LeftPanel 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        teams={teams}
+        setTeams={setTeams}
+      />
+
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
@@ -164,7 +175,7 @@ export default function ProjectsPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {projects.map((project) => (
-              <ProjectCard key={project._id as string} project={project} onUpdate={fetchProjects} />
+              <ProjectCard key={project._id.toString()} project={project} onUpdate={fetchProjects} />
             ))}
           </div>
         )}
@@ -172,11 +183,14 @@ export default function ProjectsPage() {
       </div>
 
       {/* Create Project Modal */}
-      <CreateProjectModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSubmit={handleCreateProject}
-      />
+      {!loading && teams.length > 0 &&(
+        <CreateProjectModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSubmit={handleCreateProject}
+          teams={teams}
+        />
+      )}
     </div>
   );
 }

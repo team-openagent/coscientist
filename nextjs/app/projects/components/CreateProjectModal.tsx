@@ -1,20 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { ITeam } from '@/domain/model';
 
 interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (projectData: { name: string; is_public: boolean }) => void;
+  onSubmit: (projectData: { name: string; team_id: string; }) => Promise<void>;
+  teams: ITeam[];
 }
 
-export default function CreateProjectModal({ isOpen, onClose, onSubmit }: CreateProjectModalProps) {
+export default function CreateProjectModal({ isOpen, onClose, onSubmit, teams }: CreateProjectModalProps) {
   const [formData, setFormData] = useState({
     name: '',
-    is_public: false,
+    team_id: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    console.log("TEAMS: ", teams)
+    setFormData({
+      name: '',
+      team_id: teams[0]._id.toString(),
+    });
+  }, [teams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +37,9 @@ export default function CreateProjectModal({ isOpen, onClose, onSubmit }: Create
     if (formData.name.trim().length > 100) {
       newErrors.name = 'Project name must be less than 100 characters';
     }
+    if (!formData.team_id) {
+      newErrors.team_id = 'Please select a team';
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -37,7 +50,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSubmit }: Create
     try {
       await onSubmit(formData);
       // Reset form
-      setFormData({ name: '', is_public: false });
+      setFormData({ name: '', team_id: '' });
       setErrors({});
     } catch (error) {
       console.error('Error creating project:', error);
@@ -55,7 +68,6 @@ export default function CreateProjectModal({ isOpen, onClose, onSubmit }: Create
   };
 
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
@@ -99,6 +111,34 @@ export default function CreateProjectModal({ isOpen, onClose, onSubmit }: Create
               {formData.name.length}/100 characters
             </p>
           </div>
+          {/* Team Selection */}
+          <div className="mb-4">
+            <label htmlFor="team" className="block text-sm font-medium text-gray-700 mb-2">
+              Team *
+            </label>
+            <select
+              id="team"
+              value={formData.team_id}
+              onChange={(e) => handleInputChange('team_id', e.target.value)}
+              className={`w-full text-black px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                errors.team_id ? 'border-red-300' : 'border-gray-300'
+              }`}
+              required
+            >
+              {teams && teams.length > 0 ? (
+                teams.map((team: ITeam) => (
+                  <option key={team._id.toString()} value={team._id.toString()}>
+                    {team.name}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>No teams available</option>
+              )}
+            </select>
+            {errors.team_id && (
+              <p className="mt-1 text-sm text-red-600">{errors.team_id}</p>
+            )}
+          </div>
 
           {/* Form Actions */}
           <div className="flex space-x-3">
@@ -111,7 +151,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSubmit }: Create
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !formData.name.trim()}
+              disabled={isSubmitting || !formData.name.trim() || !formData.team_id}
               className="flex-1 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (

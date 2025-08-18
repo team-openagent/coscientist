@@ -15,7 +15,7 @@ export default function LoginPage() {
       setLoading(true);
       setError('');
       await signInWithGoogle();
-      router.push('/editor'); // Redirect to home page after successful login
+      router.push('/projects'); // Redirect to home page after successful login
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in with Google';
       setError(errorMessage);

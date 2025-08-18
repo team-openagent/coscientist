@@ -18,50 +18,21 @@ interface LocalTeam {
   }
 }
 
-export default function LeftPanel({ activeTab, setActiveTab }: { activeTab: 'recent' | LocalTeam, setActiveTab: (tab: 'recent' | LocalTeam) => void }) {
+export default function LeftPanel({ 
+  activeTab, 
+  setActiveTab, 
+  teams, 
+  setTeams 
+}: { 
+  activeTab: 'recent' | ITeam, 
+  setActiveTab: (tab: 'recent' | ITeam) => void,
+  teams: ITeam[],
+  setTeams: React.Dispatch<React.SetStateAction<ITeam[]>>
+}) {
   const { user, logout } = useAuth();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [teams, setTeams] = useState<LocalTeam[]>([]);
-  const [recentProjects, setRecentProjects] = useState<IProject[]>([]);
   const [showAddTeamModal, setShowAddTeamModal] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
-
-  useEffect(() => {
-    // Initialize default personal team
-    const personalTeam: LocalTeam = {
-      _id: 'personal',
-      name: 'Personal',
-      users: [],
-      created_at: new Date(),
-      permissions: {
-        is_personal: true,
-        can_edit: true,
-        can_invite: false
-      }
-    };
-    setTeams([personalTeam]);
-    fetchRecentProjects();
-  }, [user]);
-
-  const fetchRecentProjects = async () => {
-    try {
-      const response = await fetch('/api/project/list');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          // Sort projects by last edited date (most recent first)
-          const sortedProjects = data.data.projects.sort((a: IProject, b: IProject) => {
-            const dateA = new Date(b.updated_at || b.created_at);
-            const dateB = new Date(a.updated_at || a.created_at);
-            return dateA.getTime() - dateB.getTime();
-          });
-          setRecentProjects(sortedProjects.slice(0, 10)); // Show top 10 most recent
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching recent projects:', error);
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -72,24 +43,18 @@ export default function LeftPanel({ activeTab, setActiveTab }: { activeTab: 'rec
     }
   };
 
-  const handleProjectClick = (projectId: string) => {
-    window.location.href = `/editor?project=${projectId}`;
-  };
+  const handleAddTeam = async () => {
+    const res = await fetch('/api/team', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: newTeamName.trim() }),
+    });
 
-  const handleAddTeam = () => {
-    if (newTeamName.trim()) {
-      const newTeam: LocalTeam = {
-        _id: Date.now().toString(),
-        name: newTeamName.trim(),
-        users: [],
-        created_at: new Date(),
-        permissions: {
-          is_personal: false,
-          can_edit: true,
-          can_invite: true
-        }
-      };
-      setTeams([...teams, newTeam]);
+    const data = await res.json();
+    if (res.ok && data.team) {
+      setTeams([...teams, data.team]);
       setNewTeamName('');
       setShowAddTeamModal(false);
     }
@@ -112,15 +77,6 @@ export default function LeftPanel({ activeTab, setActiveTab }: { activeTab: 'rec
       .join('')
       .toUpperCase()
       .slice(0, 2);
-  };
-
-  const formatProjectDate = (dateString: string | Date) => {
-    try {
-      const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-      return formatTimeAgo(date);
-    } catch {
-      return 'Unknown date';
-    }
   };
 
   return (
@@ -211,9 +167,9 @@ export default function LeftPanel({ activeTab, setActiveTab }: { activeTab: 'rec
             <PlusIcon className="w-4 h-4 text-gray-400" />
           </button>
         </div>
-        {teams && teams.length > 0 && teams.map((team: LocalTeam) => (
+        {teams && teams.length > 0 && teams.map((team: ITeam) => (
           <button
-            key={team._id}
+            key={team._id.toString()}
             onClick={() => setActiveTab(team)}
             className={`w-full flex items-center space-x-3 px-4 py-1 text-sm font-medium transition-all duration-200 ${
               activeTab && typeof activeTab === 'object' && activeTab._id === team._id
@@ -241,7 +197,7 @@ export default function LeftPanel({ activeTab, setActiveTab }: { activeTab: 'rec
 
       {/* Add Team Modal */}
       {showAddTeamModal && (
-        <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/30 text-black flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-sm w-full mx-4">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-medium text-gray-900">Create New Team</h3>

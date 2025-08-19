@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, use } from 'react';
 import { IReference } from '@/domain/model';
+import { ViewColumnsIcon } from '@heroicons/react/24/outline';
 import dynamic from 'next/dynamic';
 const PaperEditor = dynamic(() => import('@/app/projects/[project_id]/components/PaperEditor'), {
   ssr: false,
 });
 import ReferenceManagement from '@/app/projects/[project_id]/components/ReferenceManagement';
 import AIChat from '@/app/projects/[project_id]/components/AIChat';
-import { ViewColumnsIcon } from '@heroicons/react/24/outline';
 
 interface PathParams { 
   project_id: string;
@@ -25,6 +25,10 @@ export default function Editor({params}: {params: Promise<PathParams>}) {
   useEffect(() => {
     fetchReferences(projectId);
   }, [projectId]);
+
+  const updateReferences = () => {
+    fetchReferences(projectId);
+  };
 
   const fetchReferences = async (projectId: string) => {
     const response = await fetch(`/api/project/${projectId}/reference`);

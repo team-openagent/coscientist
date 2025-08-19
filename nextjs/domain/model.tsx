@@ -103,14 +103,26 @@ const referenceSchema: Schema = new Schema({
 export const Reference = mongoose.models.Reference || mongoose.model<IReference>('Reference', referenceSchema);
 
 
-export interface Block {
-  block_id: string; // UUID primary key
+//const blockType = ['paragraph', 'header', 'image'];
+export interface IPaper {
   project_id: string; // UUID foreign key
-  order: number;
-  type: 'paragraph' | 'header' | 'image';
-  data: Record<string, unknown>; // Editor.js JSON data
-  created_at: Date;
+  time: string;
+  blocks: Array<{
+    id: string;
+    type: string;
+    data: Record<string, unknown>;
+  }>;
 }
+
+const paperSchema: Schema = new Schema({
+  _id: { type: Schema.Types.ObjectId, auto: true },
+  project_id: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
+  time: { type: String, required: true },
+  blocks: { type: Array, required: true, default: [] },
+})
+
+export const Paper = mongoose.models.Paper || mongoose.model<IPaper>('Paper', paperSchema);
+
 
 export interface Topic {
   topic_id: string; // UUID primary key

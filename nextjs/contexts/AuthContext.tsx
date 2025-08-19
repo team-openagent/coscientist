@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
+import { ITeam } from '@/domain/model';
 
 interface AuthContextType {
   user: User | null;
@@ -37,24 +38,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       signInWithPopup(auth, googleProvider).then((result) => {
-        const user = result.user.getIdToken().then((token) => {
-        fetch('/api/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({idToken: token}),
-        })
-        .then(async (res) => {
-          if (!res.ok) {
-            const data = await res.json();
-            console.log("Yeah: ", data);
-            return;
-          }
-          const data = await res.json();
-          console.log("success: ", data);
-          return data;
-        })
+        result.user.getIdToken().then((token) => {
+          fetch('/api/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({idToken: token}),
+          })
+          .then(async (res) => {
+            return res.json();
+          })
         });
       });
     } catch (error) {

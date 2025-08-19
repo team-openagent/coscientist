@@ -2,17 +2,21 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { PlusIcon, MagnifyingGlassIcon, XMarkIcon, DocumentIcon } from '@heroicons/react/24/outline';
-import { Reference } from '../editor';
+import { IReference } from '@/domain/model';
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytesResumable } from 'firebase/storage';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AddPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  references: Reference[];
+  references: IReference[];
   projectId: string;
-  onReferenceAdded: () => void;
+  onReferenceAdded: (reference: IReference) => void;
 }
 
 export default function AddPanel({ isOpen, onClose, references, projectId, onReferenceAdded }: AddPanelProps) {
+  const { currentTeam } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -74,8 +78,16 @@ export default function AddPanel({ isOpen, onClose, references, projectId, onRef
       return;
     }
 
-    setIsUploading(true);
+    console.log("currentTeam: ", currentTeam);
     setUploadProgress(0);
+    setIsUploading(true);
+    const timestamp = Date.now();
+    const storageRef = ref(storage, `/teams/${teamId}/projects/${projectId}/references/${timestamp}_${uploadedFile.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, uploadedFile);
+    uploadTask.on('state_changed', (snapshot) => {
+      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      setUploadProgress(progress);
+    });
 
     try {
       const formData = new FormData();
@@ -84,30 +96,19 @@ export default function AddPanel({ isOpen, onClose, references, projectId, onRef
       formData.append('file', uploadedFile);
 
       // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
-      }, 100);
-
       const response = await fetch(`/api/project/${projectId}/reference`, {
         method: 'POST',
         body: formData,
       });
 
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-
       if (response.ok) {
         const result = await response.json();
         console.log("RESULT: ", result);
-        // Reset form
+
         setUploadedFile(null);
         setUploadProgress(0);
-        
-        // Notify parent component
-        onReferenceAdded();
-        
-        // Close panel after successful upload
-        setTimeout(() => onClose(), 1000);
+        onReferenceAdded(result.reference as IReference);
+        onClose();
       } else {
         throw new Error('Upload failed');
       }

@@ -1,0 +1,65 @@
+[debug] [2025-08-18T04:17:36.188Z] ----------------------------------------------------------------------
+[debug] [2025-08-18T04:17:36.194Z] Command:       /usr/local/bin/firebase /Users/skyhelper/.cache/firebase/tools/lib/node_modules/firebase-tools/lib/bin/firebase emulators:start --import=./firebase-emulator-data --export-on-exit
+[debug] [2025-08-18T04:17:36.194Z] CLI Version:   14.12.0
+[debug] [2025-08-18T04:17:36.195Z] Platform:      darwin
+[debug] [2025-08-18T04:17:36.195Z] Node Version:  v20.18.2
+[debug] [2025-08-18T04:17:36.195Z] Time:          Mon Aug 18 2025 13:17:36 GMT+0900 (Korean Standard Time)
+[debug] [2025-08-18T04:17:36.196Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-08-18T04:17:36.200Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2025-08-18T04:17:36.605Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-08-18T04:17:36.607Z] > authorizing via signed-in user (howon@open4gent.ai)
+[debug] [2025-08-18T04:17:36.713Z] java version "21.0.6" 2025-01-21 LTS
+
+[debug] [2025-08-18T04:17:36.715Z] Java(TM) SE Runtime Environment (build 21.0.6+8-LTS-188)
+Java HotSpot(TM) 64-Bit Server VM (build 21.0.6+8-LTS-188, mixed mode, sharing)
+
+[debug] [2025-08-18T04:17:36.718Z] Parsed Java major version: 21
+[info] i  emulators: Starting emulators: auth, storage {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, storage"}}
+[debug] [2025-08-18T04:17:38.404Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-08-18T04:17:38.405Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-08-18T04:17:38.406Z] [storage] Storage Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-08-18T04:17:38.406Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"storage":[{"address":"127.0.0.1","family":"IPv4","port":9199}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-08-18T04:17:38.414Z] [hub] writing locator at /var/folders/q5/sjzg9d8s2y3cw1gxt8g7ty540000gn/T/hub-coscientist-dev-91437.json
+[debug] [2025-08-18T04:17:45.331Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2025-08-18T04:17:45.332Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[info] i  auth: Importing config from /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/firebase-emulator-data/auth_export/config.json {"metadata":{"emulator":{"name":"auth"},"message":"Importing config from /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/firebase-emulator-data/auth_export/config.json"}}
+[info] i  auth: Importing accounts from /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/firebase-emulator-data/auth_export/accounts.json {"metadata":{"emulator":{"name":"auth"},"message":"Importing accounts from /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/firebase-emulator-data/auth_export/accounts.json"}}
+[debug] [2025-08-18T04:17:45.454Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"storage"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-08-18T04:17:46.242Z] Temp file directory for storage emulator: /var/folders/q5/sjzg9d8s2y3cw1gxt8g7ty540000gn/T/firebase/storage/blobs {"metadata":{"emulator":{"name":"storage"},"message":"Temp file directory for storage emulator: /var/folders/q5/sjzg9d8s2y3cw1gxt8g7ty540000gn/T/firebase/storage/blobs"}}
+[debug] [2025-08-18T04:17:46.275Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4000/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌────────────────┬────────────────┬───────────────────────────────┐
+│ Emulator       │ Host:Port      │ View in Emulator UI           │
+├────────────────┼────────────────┼───────────────────────────────┤
+│ Authentication │ 127.0.0.1:9099 │ http://127.0.0.1:4000/auth    │
+├────────────────┼────────────────┼───────────────────────────────┤
+│ Storage        │ 127.0.0.1:9199 │ http://127.0.0.1:4000/storage │
+└────────────────┴────────────────┴───────────────────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}
+[warn] ⚠  Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:9 {"metadata":{"emulator":{"name":"storage"},"message":"Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:9"}}
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}
+[warn] ⚠  Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:8 {"metadata":{"emulator":{"name":"storage"},"message":"Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:8"}}
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}
+[warn] ⚠  Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:8 {"metadata":{"emulator":{"name":"storage"},"message":"Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:8"}}
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}
+[warn] ⚠  Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:8 {"metadata":{"emulator":{"name":"storage"},"message":"Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:8"}}
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}
+[warn] ⚠  Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:8 {"metadata":{"emulator":{"name":"storage"},"message":"Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:8"}}
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}
+[warn] ⚠  Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:8 {"metadata":{"emulator":{"name":"storage"},"message":"Missing ':' before 'if' condition in /Users/skyhelper/Repository/personal/openagent/ai-coscientist/nextjs/storage.rules:8"}}
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}
+[info] i  storage: Change detected, updating rules for Cloud Storage... {"metadata":{"emulator":{"name":"storage"},"message":"Change detected, updating rules for Cloud Storage..."}}

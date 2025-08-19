@@ -1,74 +1,42 @@
 'use client';
 
-import React, { useState } from 'react';
-import ReferenceManagement from '@/app/editor/components/ReferenceManagement';
+import React, { useState, useEffect, createContext, useContext } from 'react';
+import { IReference } from '@/domain/model';
 import dynamic from 'next/dynamic';
-const PaperEditor = dynamic(() => import('@/app/editor/components/PaperEditor'), {
+const PaperEditor = dynamic(() => import('@/app/projects/[project_id]/components/PaperEditor'), {
   ssr: false,
 });
-
-import AIChat from '@/app/editor/components/AIChat';
+import ReferenceManagement from '@/app/projects/[project_id]/components/ReferenceManagement';
+import AIChat from '@/app/projects/[project_id]/components/AIChat';
 import { ViewColumnsIcon } from '@heroicons/react/24/outline';
 
-export interface Reference {
-  id: string;
-  type: 'weblink' | 'figure' | 'pdf';
-  title: string;
-  url?: string;
-  description?: string;
-  tags?: string[];
-  createdAt: Date;
+interface PathParams { 
+  projectd: string;
 }
 
-export default function Editor() {
-  // Sample data - in real app, this would come from API/database
-  const [references, setReferences] = useState<Reference[]>([
-    {
-      id: '1',
-      type: 'weblink',
-      title: 'LaTeX Documentation',
-      url: 'https://www.latex-project.org/help/documentation/',
-      description: 'Official LaTeX documentation and guides',
-      tags: ['documentation', 'latex'],
-      createdAt: new Date('2024-01-15')
-    },
-    {
-      id: '2',
-      type: 'figure',
-      title: 'Research Methodology Diagram',
-      url: '/images/methodology.png',
-      description: 'Visual representation of research methodology',
-      tags: ['methodology', 'diagram'],
-      createdAt: new Date('2024-01-16')
-    },
-    {
-      id: '3',
-      type: 'pdf',
-      title: 'Academic Paper Template',
-      url: '/papers/template.pdf',
-      description: 'Standard academic paper template',
-      tags: ['template', 'academic'],
-      createdAt: new Date('2024-01-17')
-    }
-  ]);
+const PathParamsContext = createContext<Promise<PathParams> | null>(null)
 
-  const [selectedReferences, setSelectedReferences] = useState<string[]>([]);
+export default function Editor() {
+  const [references, setReferences] = useState<IReference[]>([]);
   const [paperContent, setPaperContent] = useState('');
   const [isReferencePanelCollapsed, setIsReferencePanelCollapsed] = useState(false);
   const [isChatPanelCollapsed, setIsChatPanelCollapsed] = useState(false);
 
+  const context = useContext(PathParamsContext);
+  const projectId = context?.project_id;
+
+  useEffect(() => {
+    fetchReferences(projectId);
+  }, [projectId]);
+
+  const fetchReferences = async (projectId: string) => {
+    const response = await fetch(`/api/project/${projectId}/reference`);
+    const data = await response.json();
+    setReferences(data.references);
+  };
   // Reference management functions
   const removeReference = (id: string) => {
     setReferences(prev => prev.filter(ref => ref.id !== id));
-    setSelectedReferences(prev => prev.filter(refId => refId !== id));
-  };
-
-  const toggleReferenceSelection = (id: string) => {
-    setSelectedReferences(prev => 
-      prev.includes(id) 
-        ? prev.filter(refId => refId !== id)
-        : [...prev, id]
-    );
   };
 
   // Panel collapse handlers
@@ -100,9 +68,7 @@ export default function Editor() {
           {!isReferencePanelCollapsed && (
             <ReferenceManagement
               references={references}
-              selectedReferences={selectedReferences}
               onRemoveReference={removeReference}
-              onToggleSelection={toggleReferenceSelection}
             />
           )}
         </div>
@@ -117,11 +83,7 @@ export default function Editor() {
         {/* Right Panel - AI Chat */}
         <div className={`${panelStyles} ${isChatPanelCollapsed ? collapsedWidth : expandedWidth}`}>
           {!isChatPanelCollapsed && (
-            <AIChat
-              references={references}
-              selectedReferences={selectedReferences}
-              onToggleReferenceSelection={toggleReferenceSelection}
-            />
+            <AIChat references={references} />
           )}
           
           {/* Chat Panel Toggle Button */}

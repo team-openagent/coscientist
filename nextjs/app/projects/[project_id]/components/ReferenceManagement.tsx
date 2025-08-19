@@ -1,38 +1,34 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   PlusIcon, 
   TrashIcon, 
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
-import { Reference } from '../page';
-import { getTypeIcon, getTypeLabel } from '../utils/referenceUtils';
+import { IReference } from '@/domain/model';
+import { getTypeIcon, getTypeLabel } from '@/app/projects/[project_id]/utils/referenceUtils';
 import AddPanel from './AddPanel';
 import DiscoverPanel from './DiscoverPanel';
-import { useSearchParams } from 'next/navigation';
 
 interface ReferenceManagementProps {
-  references: Reference[];
-  selectedReferences: string[];
+  projectId: string;
+  references: IReference[];
+  onAddReference: (reference: IReference) => void;
   onRemoveReference: (id: string) => void;
-  onToggleSelection: (id: string) => void;
 }
 
 export default function ReferenceManagement({
+  projectId,
   references,
-  selectedReferences,
+  onAddReference,
   onRemoveReference,
-  onToggleSelection
 }: ReferenceManagementProps) {
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [showDiscoverPanel, setShowDiscoverPanel] = useState(false);
-  const searchParams = useSearchParams();
-  const projectId = searchParams.get('project');
 
-  const handleReferenceAdded = () => {
-    // Refresh references or notify parent component
-    // For now, we'll just close the panel
+  const handleReferenceAdded = (reference: IReference) => {
+    onAddReference(reference);
     setShowAddPanel(false);
   };
 
@@ -67,19 +63,14 @@ export default function ReferenceManagement({
       <div className="flex-1 overflow-y-auto">
         {references.length === 0 ? (
           <div className="p-4 text-center text-gray-500 mt-3">
-            No references added yet
+            No references
           </div>
         ) : (
           <div className="p-1 space-y-2 mt-3">
             {references.map((reference) => (
               <div
-                key={reference.id}
-                className={`px-4 py-2 border rounded-lg cursor-pointer transition-colors ${
-                  selectedReferences.includes(reference.id)
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                }`}
-                onClick={() => onToggleSelection(reference.id)}
+                key={reference._id.toString()}
+                className={`px-4 py-2 border rounded-lg cursor-pointer transition-colors ${'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 flex-1">
@@ -94,7 +85,7 @@ export default function ReferenceManagement({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
-                        <h3 className="text-sm font-medium text-gray-800 truncate">
+                        <h3 className="max-w-2xs truncate text-sm font-medium text-gray-800 truncate">
                           {reference.title}
                         </h3>
                         
@@ -104,7 +95,7 @@ export default function ReferenceManagement({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onRemoveReference(reference.id);
+                      onRemoveReference(reference._id.toString());
                     }}
                     className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                     title="Remove reference"

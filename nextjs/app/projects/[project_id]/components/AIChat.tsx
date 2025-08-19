@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Reference } from '../editor';
+import { IReference } from '@/domain/model';
 import { Topic, Message } from './types';
 import ChatHead from './ChatHead';
 import TopicList from './TopicList';
@@ -9,15 +9,11 @@ import ChatHistory from './ChatHistory';
 import ChatInput from './ChatInput';
 
 interface AIChatProps {
-  references: Reference[];
-  selectedReferences: string[];
-  onToggleReferenceSelection: (id: string) => void;
+  references: IReference[];
 }
 
 export default function AIChat({
   references,
-  selectedReferences,
-  onToggleReferenceSelection
 }: AIChatProps) {
   // Topic management state
   const [topics, setTopics] = useState<Topic[]>([
@@ -84,7 +80,6 @@ export default function AIChat({
       type: 'user',
       content: inputValue,
       timestamp: new Date(),
-      contextReferences: references.filter(ref => selectedReferences.includes(ref.id))
     };
 
     // Add message to current topic
@@ -106,7 +101,7 @@ export default function AIChat({
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: getAIResponse(inputValue, userMessage.contextReferences || []),
+        content: getAIResponse(inputValue, references),
         timestamp: new Date()
       };
       
@@ -125,14 +120,14 @@ export default function AIChat({
     }, 1000);
   };
 
-  const getAIResponse = (userInput: string, contextRefs: Reference[]): string => {
+  const getAIResponse = (userInput: string, contextRefs: IReference[]): string => {
     const lowerInput = userInput.toLowerCase();
     let response = '';
     
     if (contextRefs.length > 0) {
       response += `Based on your selected references:\n`;
       contextRefs.forEach(ref => {
-        response += `• ${ref.title} (${ref.type})\n`;
+        response += `• ${ref.title} (${ref.type.toUpperCase()})\n`;
       });
       response += '\n';
     }

@@ -67,10 +67,11 @@ export async function POST(
           { status: 403 }
         );
       }
+      console.log("TITLE: ", title);
 
       const reference = new Reference({
         title: title,
-        project: project!._id,
+        project: project_id,
         uploader: user!._id,
         type: type || (file.type === 'application/pdf' ? 'pdf' : 'image'),
         raw_data_path: `/uploads/references/${Date.now()}_${file.name}`,
@@ -82,10 +83,8 @@ export async function POST(
       // TODO: Implement actual file storage (e.g., to cloud storage or local filesystem)
       // For now, we're just storing the metadata
       return NextResponse.json({
-        data: {
-          reference: savedReference,
-          message: 'Reference created successfully. File storage implementation needed.'
-        }
+        reference: savedReference,
+        message: 'Reference created successfully. File storage implementation needed.'
       });
       
     } else {
@@ -133,24 +132,143 @@ export async function POST(
 }
 
 export async function GET(request: NextRequest, props: { params: Promise<{ project_id: string }> }) {
-  const params = await props.params;
   try {
+    const params = await props.params;
     const { project_id } = params;
+    const uid = getUID(request);
+    
     await connectToDatabase();
-
+    
+    // Get user and project information
+    const user: IUser | null = await User.findOne({ uid: uid });
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+    
+    const project = await Project.findOne({ _id: project_id }).populate('team');
+    if (!project) {
+      return NextResponse.json(
+        { success: false, error: 'Project not found' },
+        { status: 404 }
+      );
+    }
+    
+    // Check if user is a member of the project's team
+    const team = project.team;
+    const isTeamMember = (team.users as Types.ObjectId[]).includes(user._id);
+    if (!isTeamMember) {
+      return NextResponse.json(
+        { success: false, error: 'User does not have permission to access this project' },
+        { status: 403 }
+      );
+    }
+    
     // Get all references for the project
     const references = await Reference
-      .find({ projects: project_id })
+      .find({ project: project_id })
+      .populate('uploader', 'display_name email')
       .sort({ created_at: -1 })
       .lean();
 
     return NextResponse.json({
-      success: true,
-      data: { references }
+      references: references
     });
 
   } catch (error) {
     console.error('Error fetching references:', error);
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ project_id: string; reference_id: string }> }
+) {
+  try {
+    const { project_id, reference_id } = await params;
+    const uid = getUID(request);
+    
+    if (!reference_id) {
+      return NextResponse.json(
+        { success: false, error: 'Reference ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    await connectToDatabase();
+    
+    // Get user and project information
+    const user: IUser | null = await User.findOne({ uid: uid });
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+    
+    const project = await Project.findOne({ _id: project_id }).populate('team');
+    if (!project) {
+      return NextResponse.json(
+        { success: false, error: 'Project not found' },
+        { status: 404 }
+      );
+    }
+    
+    // Check if user is a member of the project's team
+    const team = project.team;
+    const isTeamMember = (team.users as Types.ObjectId[]).includes(user._id);
+    if (!isTeamMember) {
+      return NextResponse.json(
+        { success: false, error: 'User does not have permission to access this project' },
+        { status: 403 }
+      );
+    }
+    
+    // Find the reference and check if it exists
+    const reference = await Reference.findById(reference_id);
+    if (!reference) {
+      return NextResponse.json(
+        { success: false, error: 'Reference not found' },
+        { status: 404 }
+      );
+    }
+    
+    // Check if the reference belongs to the specified project
+    if (reference.project.toString() !== project_id) {
+      return NextResponse.json(
+        { success: false, error: 'Reference does not belong to this project' },
+        { status: 400 }
+      );
+    }
+    
+    // Check if user is the uploader or has admin permissions
+    // For now, only the uploader can delete their own references
+    // You can extend this to allow team admins to delete any reference
+    if (reference.uploader.toString() !== user._id.toString()) {
+      return NextResponse.json(
+        { success: false, error: 'Only the reference uploader can delete this reference' },
+        { status: 403 }
+      );
+    }
+    
+    // Delete the reference
+    await Reference.findByIdAndDelete(reference_id);
+    
+    // TODO: If you implement file storage, also delete the actual file here
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Reference deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting reference:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

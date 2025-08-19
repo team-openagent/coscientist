@@ -1,70 +1,55 @@
 'use client';
 
-import React, { useState } from 'react';
-import ReferenceManagement from '@/app/editor/components/ReferenceManagement';
-import PaperEditor from '@/app/editor/components/PaperEditor';
-import AIChat from '@/app/editor/components/AIChat';
+import React, { useState, useEffect, use } from 'react';
+import { IReference } from '@/domain/model';
+import dynamic from 'next/dynamic';
+const PaperEditor = dynamic(() => import('@/app/projects/[project_id]/components/PaperEditor'), {
+  ssr: false,
+});
+import ReferenceManagement from '@/app/projects/[project_id]/components/ReferenceManagement';
+import AIChat from '@/app/projects/[project_id]/components/AIChat';
 import { ViewColumnsIcon } from '@heroicons/react/24/outline';
 
-export interface Reference {
-  id: string;
-  type: 'weblink' | 'figure' | 'pdf';
-  title: string;
-  url?: string;
-  description?: string;
-  tags?: string[];
-  createdAt: Date;
+interface PathParams { 
+  project_id: string;
 }
 
-export default function Editor() {
-  // Sample data - in real app, this would come from API/database
-  const [references, setReferences] = useState<Reference[]>([
-    {
-      id: '1',
-      type: 'weblink',
-      title: 'LaTeX Documentation',
-      url: 'https://www.latex-project.org/help/documentation/',
-      description: 'Official LaTeX documentation and guides',
-      tags: ['documentation', 'latex'],
-      createdAt: new Date('2024-01-15')
-    },
-    {
-      id: '2',
-      type: 'figure',
-      title: 'Research Methodology Diagram',
-      url: '/images/methodology.png',
-      description: 'Visual representation of research methodology',
-      tags: ['methodology', 'diagram'],
-      createdAt: new Date('2024-01-16')
-    },
-    {
-      id: '3',
-      type: 'pdf',
-      title: 'Academic Paper Template',
-      url: '/papers/template.pdf',
-      description: 'Standard academic paper template',
-      tags: ['template', 'academic'],
-      createdAt: new Date('2024-01-17')
-    }
-  ]);
-
-  const [selectedReferences, setSelectedReferences] = useState<string[]>([]);
+export default function Editor({params}: {params: Promise<PathParams>}) {
+  const [references, setReferences] = useState<IReference[]>([]);
   const [paperContent, setPaperContent] = useState('');
   const [isReferencePanelCollapsed, setIsReferencePanelCollapsed] = useState(false);
   const [isChatPanelCollapsed, setIsChatPanelCollapsed] = useState(false);
 
-  // Reference management functions
-  const removeReference = (id: string) => {
-    setReferences(prev => prev.filter(ref => ref.id !== id));
-    setSelectedReferences(prev => prev.filter(refId => refId !== id));
+  const projectId = use(params).project_id;
+
+  useEffect(() => {
+    fetchReferences(projectId);
+  }, [projectId]);
+
+  const fetchReferences = async (projectId: string) => {
+    const response = await fetch(`/api/project/${projectId}/reference`);
+    const data = await response.json();
+    setReferences(data.references);
   };
 
-  const toggleReferenceSelection = (id: string) => {
-    setSelectedReferences(prev => 
-      prev.includes(id) 
-        ? prev.filter(refId => refId !== id)
-        : [...prev, id]
-    );
+  const addReference = (reference: IReference) => {
+    setReferences(prev => [...prev, reference]);
+  };
+
+  // Reference management functions
+  const removeReference = async (id: string) => {
+    const response = await fetch(`/api/project/${projectId}/reference/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (response.ok) {
+      // Remove reference from local state on successful deletion
+      setReferences(prev => prev.filter(ref => ref._id.toString() !== id));
+    } else {
+      const errorData = await response.json();
+      console.error('Failed to delete reference:', errorData.error);
+      // You can add a toast notification here to show the error to the user
+    }
   };
 
   // Panel collapse handlers
@@ -95,10 +80,10 @@ export default function Editor() {
         <div className={`${panelStyles} ${isReferencePanelCollapsed ? collapsedWidth : expandedWidth}`}>
           {!isReferencePanelCollapsed && (
             <ReferenceManagement
+              projectId={projectId}
               references={references}
-              selectedReferences={selectedReferences}
               onRemoveReference={removeReference}
-              onToggleSelection={toggleReferenceSelection}
+              onAddReference={addReference}
             />
           )}
         </div>
@@ -113,11 +98,7 @@ export default function Editor() {
         {/* Right Panel - AI Chat */}
         <div className={`${panelStyles} ${isChatPanelCollapsed ? collapsedWidth : expandedWidth}`}>
           {!isChatPanelCollapsed && (
-            <AIChat
-              references={references}
-              selectedReferences={selectedReferences}
-              onToggleReferenceSelection={toggleReferenceSelection}
-            />
+            <AIChat references={references} />
           )}
           
           {/* Chat Panel Toggle Button */}

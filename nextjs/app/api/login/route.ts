@@ -20,14 +20,17 @@ export async function POST(request: NextRequest) {
 
   // Verify the Firebase ID token
   const decodedToken = await getAuth(app).verifyIdToken(idToken);
+  await getAuth(app).setCustomUserClaims(decodedToken.uid, {
+    is_admin: true,
+  });
   const uid = decodedToken.uid;
   const email = decodedToken.email;
   const displayName = decodedToken.name;
 
   await connectToDatabase();
-  const user = await User.findOne({ _id: uid });
+  const user = await User.findOne({ uid: uid });
   if (!user) {
-    const newUser: IUser = new User({ _id: uid, email: email, display_name: displayName});
+    const newUser: IUser = new User({ uid: uid, email: email, display_name: displayName});
     await newUser.save();
 
     // Create a team named "personal" for the new user
@@ -43,8 +46,6 @@ export async function POST(request: NextRequest) {
     });
     await team.save();
     await User.updateOne({ _id: newUser._id }, { $push: { teams: team._id } });
-    console.log(`New user created: ${newUser.display_name}`);
-    console.log(`New team created: ${team.name}`);
   }
 
   // Create JWT payload

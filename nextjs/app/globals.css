@@ -126,12 +126,11 @@ body {
   display: none;
 }
 
-.math-input-wrapper.show-input .math-input {
+.math-input-wrapper .math-preview {
   display: block;
 }
-
-.math-input-wrapper .math-preview {
-  cursor: pointer;
+.math-input-wrapper.show-input .math-input {
+  display: block;
 }
 
 .errorMessage{color:red}

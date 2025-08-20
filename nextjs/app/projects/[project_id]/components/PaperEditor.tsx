@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { GlobeAltIcon, ShareIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase';
 
 // EditorJS Tools
 import EditorJS from '@editorjs/editorjs';
@@ -60,18 +62,24 @@ export default function PaperEditor({
             tunes: ["alignmentTuneTool"]
           },
           imageTool: {
-            class: Image,
+            class: ImageTool,
             config: {
               uploader: {
+                uploadByUrl: async (url: string) => {
+                  //: implement this
+                },
                 uploadByFile: async (file: File) => {
+                  const timestamp = Date.now();
+                  const storageRef = ref(storage, `/projects/${projectId}/images/${timestamp}_${file.name}`);
+                  const uploadTask = await uploadBytesResumable(storageRef, file);
+                  const url = await getDownloadURL(uploadTask.ref);
+                  console.log(url);
                   return {
                     success: 1,
                     file: {
-                      url: URL.createObjectURL(file),
-                      name: file.name,
-                      size: file.size
+                      url: url,
                     }
-                  };
+                  }
                 }
               }
             }
@@ -159,6 +167,31 @@ export default function PaperEditor({
     console.log('Exporting document...', paper);
   };
 
+  const handleSave = async () => {
+    if (editorRef.current) {
+      try {
+        const savedData = await editorRef.current.save();
+        const response = await fetch(`/api/project/${projectId}/paper`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(savedData)
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Paper saved successfully:', data);
+          // You could add a toast notification here
+        } else {
+          console.error('Failed to save paper');
+        }
+      } catch (error) {
+        console.error('Error saving paper:', error);
+      }
+    }
+  };
+
   return (
     <div className="h-full bg-white flex flex-col">
       {/* Toolbar */}
@@ -170,25 +203,25 @@ export default function PaperEditor({
         {/* Right-aligned actions */}
         <div className="flex items-center space-x-2">
           <button
+            onClick={handleSave}
+            className="text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded transition-colors p-2"
+            title="Save document"
+          >
+            <DocumentArrowDownIcon className="w-5 h-5" />
+          </button>
+          <button
             onClick={handlePublish}
-            className="p-2 text-gray-600 hover:text-green-600 hover:bg-gray-100 rounded transition-colors"
+            className="text-gray-600 hover:text-green-600 hover:bg-gray-100 rounded transition-colors p-2"
             title="Publish document"
           >
             <GlobeAltIcon className="w-5 h-5" />
           </button>
           <button
             onClick={handleShare}
-            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded transition-colors"
+            className="text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded transition-colors p-2"
             title="Share document"
           >
             <ShareIcon className="w-5 h-5" />
-          </button>
-          <button
-            onClick={handleExport}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
-            title="Export document"
-          >
-            <DocumentArrowDownIcon className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -197,7 +230,7 @@ export default function PaperEditor({
       <div className="flex-1 overflow-auto text-black">
         <div 
           id="editorjs-container"
-          className="h-full p-16"
+          className="h-full"
           style={{ minHeight: 'calc(100vh - 80px)' }}
         />
       </div>

@@ -65,10 +65,11 @@ export default function ReferenceManagement({
                 key={reference._id.toString()}
                 className={`px-4 py-2 border rounded-lg cursor-pointer transition-colors ${'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
               >
+                
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 flex-1">
+                  <div className="max-w-14/15 flex items-center space-x-3 flex-1">
                     <div 
-                      className="relative group"
+                      className="relative group flex-shrink-0"
                       title={getTypeLabel(reference.type)}
                     >
                       {getTypeIcon(reference.type)}
@@ -76,21 +77,16 @@ export default function ReferenceManagement({
                         {getTypeLabel(reference.type)}
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="max-w-2xs truncate text-sm font-medium text-gray-800 truncate">
-                          {reference.title}
-                        </h3>
-                        
-                      </div>
-                    </div>
+                    <h3 className="flex-1 min-w-0 text-sm font-medium text-gray-800 truncate">
+                      {reference.title}
+                    </h3>
                   </div>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onRemoveReference(reference._id.toString());
                     }}
-                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                    className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors ml-2"
                     title="Remove reference"
                   >
                     <TrashIcon className="w-4 h-4" />

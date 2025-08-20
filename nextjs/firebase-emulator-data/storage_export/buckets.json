@@ -2,6 +2,9 @@
   "buckets": [
     {
       "id": "coscientist-dev-91437.appspot.com"
+    },
+    {
+      "id": "coscientist-dev-91437.firebasestorage.app"
     }
   ]
 }

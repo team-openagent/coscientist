@@ -61,7 +61,7 @@ export default function Editor({params}: {params: Promise<PathParams>}) {
   // Common panel styles
   const panelStyles = "transition-all duration-300";
   const collapsedWidth = "w-12";
-  const expandedWidth = "w-1/4";
+  const expandedWidth = "max-w-1/5";
 
   return (
     <div className="h-screen bg-gray-50 relative">

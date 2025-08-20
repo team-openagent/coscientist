@@ -14,23 +14,16 @@ import DiscoverPanel from './DiscoverPanel';
 interface ReferenceManagementProps {
   projectId: string;
   references: IReference[];
-  onAddReference: (reference: IReference) => void;
   onRemoveReference: (id: string) => void;
 }
 
 export default function ReferenceManagement({
   projectId,
   references,
-  onAddReference,
   onRemoveReference,
 }: ReferenceManagementProps) {
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [showDiscoverPanel, setShowDiscoverPanel] = useState(false);
-
-  const handleReferenceAdded = (reference: IReference) => {
-    onAddReference(reference);
-    setShowAddPanel(false);
-  };
 
   return (
     <div className="h-full bg-white border-r border-gray-200 flex flex-col">
@@ -115,7 +108,6 @@ export default function ReferenceManagement({
         onClose={() => setShowAddPanel(false)} 
         references={references}
         projectId={projectId!}
-        onReferenceAdded={handleReferenceAdded}
       />
       <DiscoverPanel 
         isOpen={showDiscoverPanel} 

@@ -16,7 +16,6 @@ interface PathParams {
 
 export default function Editor({params}: {params: Promise<PathParams>}) {
   const [references, setReferences] = useState<IReference[]>([]);
-  const [paperContent, setPaperContent] = useState('');
   const [isReferencePanelCollapsed, setIsReferencePanelCollapsed] = useState(false);
   const [isChatPanelCollapsed, setIsChatPanelCollapsed] = useState(false);
 
@@ -34,10 +33,6 @@ export default function Editor({params}: {params: Promise<PathParams>}) {
     const response = await fetch(`/api/project/${projectId}/reference`);
     const data = await response.json();
     setReferences(data.references);
-  };
-
-  const addReference = (reference: IReference) => {
-    setReferences(prev => [...prev, reference]);
   };
 
   // Reference management functions
@@ -87,16 +82,12 @@ export default function Editor({params}: {params: Promise<PathParams>}) {
               projectId={projectId}
               references={references}
               onRemoveReference={removeReference}
-              onAddReference={addReference}
             />
           )}
         </div>
         {/* Middle Panel - Paper Editor */}
         <div className="flex-1">
-          <PaperEditor
-            content={paperContent}
-            onContentChange={setPaperContent}
-          />
+          <PaperEditor holder="editorjs-container" projectId={projectId} />
         </div>
         
         {/* Right Panel - AI Chat */}

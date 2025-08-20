@@ -1,117 +1,162 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  GlobeAltIcon, 
-  ShareIcon, 
-  DocumentArrowDownIcon
-} from '@heroicons/react/24/outline';
-import Header from '@editorjs/header';
-import EditorJS from '@editorjs/editorjs';
-import Image from '@editorjs/image';
+import { GlobeAltIcon, ShareIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 
-interface EditorData {
-  time: number;
-  blocks: Array<{
-    id: string;
-    type: string;
-    data: {
-      text?: string;
-      level?: number;
-      url?: string;
-      caption?: string;
-    };
-  }>;
-  version: string;
-}
+// EditorJS Tools
+import EditorJS from '@editorjs/editorjs';
+import Header from '@editorjs/header';
+import ImageTool from '@editorjs/image';
+import CodeTool from '@editorjs/code';
+import AlignmentTuneTool from 'editorjs-text-alignment-blocktune';
+import Undo from 'editorjs-undo';
+import DragDrop from 'editorjs-drag-drop';
+import Shortcut from '@codexteam/shortcuts';
+import EJLaTeX from 'editorjs-latex';
+
+import { IPaper } from '@/domain/model';
 
 interface PaperEditorProps {
-  content: string;
-  onContentChange: (content: string) => void;
+  holder: string;
+  projectId: string;
 }
 
 export default function PaperEditor({
-  content,
-  onContentChange,
+  holder,
+  projectId,
 }: PaperEditorProps) {
   const editorRef = useRef<EditorJS | null>(null);
-  const [editorData, setEditorData] = useState<EditorData | null>(null);
+  const [paper, setPaper] = useState<IPaper | null>(null);
 
   // Initialize EditorJS
   useEffect(() => {
-    if (editorRef.current) return;
-
-    editorRef.current = new EditorJS({
-      holder: "editorjs-container",
-      data: {
-        time: Date.now(),
-        blocks: [
-          {
-            id: 'initial-block',
-            type: 'paragraph',
-            data: {
-              text: content || 'Start writing your paper...'
-            }
-          }
-        ],
-        version: '2.28.2'
-      },
-      placeholder: 'Start writing your paper...',
-      tools: {
-        header: Header,
-        image: {
-          class: Image,
-          config: {
-            uploader: {
-              uploadByFile: async (file: File) => {
-                // For now, we'll create a placeholder URL
-                // In a real app, you'd upload to your server/CDN
-                return {
-                  success: 1,
-                  file: {
-                    url: URL.createObjectURL(file),
-                    name: file.name,
-                    size: file.size
-                  }
-                };
+    if (!editorRef.current) {
+      editorRef.current = new EditorJS({
+        holder: holder,
+        placeholder: 'Start writing your paper...',
+        data: {
+          blocks: [
+            {
+              type: "header",
+              data: {
+                text: "Hello",
+                level: 1
+              },
+              tunes: {
+                alignmentTuneTool: {
+                  alignment: "center"
+                }
               }
             }
+          ]
+        },
+        tools: {
+          header: {
+            class: Header, // TODO: fix this
+            config: {
+              levels: [1,2,3],
+              defaultLevel: 2,
+            },
+            tunes: ["alignmentTuneTool"]
+          },
+          imageTool: {
+            class: Image,
+            config: {
+              uploader: {
+                uploadByFile: async (file: File) => {
+                  return {
+                    success: 1,
+                    file: {
+                      url: URL.createObjectURL(file),
+                      name: file.name,
+                      size: file.size
+                    }
+                  };
+                }
+              }
+            }
+          },
+          Math: {
+            class: EJLaTeX,
+            shortcut: 'CMD+SHIFT+M',
+            config: {}
+          },
+          codeTool: CodeTool,
+          alignmentTuneTool: {
+            class: AlignmentTuneTool,
+            tunes: false,
+            config: {
+              default: "left",
+            }
           }
-        }
-      },
-      onChange: async () => {
-        if (editorRef.current) {
-          const outputData = await editorRef.current.save();
-          setEditorData(outputData as EditorData);
-          
-          // Convert blocks to string for backward compatibility
-          const stringContent = outputData.blocks
-            .map((block) => {
-              if (block.type === 'paragraph') return block.data.text || '';
-              if (block.type === 'header') return block.data.text || '';
-              return '';
-            })
-            .filter((text: string) => text.trim())
-            .join('\n\n');
-          
-          onContentChange(stringContent);
-        }
-      }
-    });
+        },
+        tunes: ["alignmentTuneTool"],
+        onChange: (api, event) => {
+          event = {
+            type: "string",
+            details: {
+              target: "BlockAPI",
+            },
+          }
+        },
+        onReady: async () => {
+          const editor = editorRef.current
+          new Undo({editor});
+          new DragDrop(editor, "2px solid #fff");
+          const paper = await fetchPaper();
+          editor?.blocks.render(paper || {});
 
-    return () => {};
+          new Shortcut({
+            name: 'CTRL+S',
+            on: document.body,
+            callback: function(event: KeyboardEvent) {
+              event.preventDefault();
+              editor?.save().then( savedData => {
+                // POST method
+                fetch(`/api/project/${projectId}/paper`, {
+                  method: 'POST',
+                  body: JSON.stringify(savedData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                  console.log(data);
+                })
+                .catch(error => {
+                  console.error('Error:', error);
+                });
+              })
+            }
+          })
+        }
+      })
+    }
+    return () => {
+      if(editorRef.current && editorRef.current.destroy) {
+        editorRef.current.destroy();
+        editorRef.current = null;
+      }
+    };
   }, []);
 
+  const fetchPaper = async () => {
+    const res = await fetch(`/api/project/${projectId}/paper`);
+    const data = await res.json();
+    if (data && data.paper) {
+      setPaper(data.paper);
+      return data.paper;
+    }
+  };
+
   const handlePublish = () => {
-    console.log('Publishing document...', editorData);
+    console.log('Publishing document...', paper);
   };
 
   const handleShare = () => {
-    console.log('Sharing document...', editorData);
+    console.log('Sharing document...', paper);
   };
 
   const handleExport = () => {
-    console.log('Exporting document...', editorData);
+    console.log('Exporting document...', paper);
   };
 
   return (
@@ -152,7 +197,7 @@ export default function PaperEditor({
       <div className="flex-1 overflow-auto text-black">
         <div 
           id="editorjs-container"
-          className="h-full p-6"
+          className="h-full p-16"
           style={{ minHeight: 'calc(100vh - 80px)' }}
         />
       </div>

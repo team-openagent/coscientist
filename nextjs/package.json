@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@codexteam/shortcuts": "^1.2.0",
+    "@editorjs/code": "^2.9.3",
     "@editorjs/editorjs": "^2.30.8",
     "@editorjs/header": "^2.8.8",
     "@editorjs/image": "^2.10.3",
@@ -16,6 +18,10 @@
     "@tailwindcss/typography": "^0.5.16",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.1",
+    "editorjs-drag-drop": "^1.1.16",
+    "editorjs-latex": "^1.0.5",
+    "editorjs-text-alignment-blocktune": "^1.0.3",
+    "editorjs-undo": "^2.0.28",
     "firebase": "^12.1.0",
     "firebase-admin": "^13.4.0",
     "jose": "^6.0.12",

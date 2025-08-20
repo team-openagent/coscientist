@@ -5,18 +5,15 @@ import { PlusIcon, MagnifyingGlassIcon, XMarkIcon, DocumentIcon } from '@heroico
 import { IReference } from '@/domain/model';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytesResumable } from 'firebase/storage';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface AddPanelProps {
   isOpen: boolean;
   onClose: () => void;
   references: IReference[];
   projectId: string;
-  onReferenceAdded: (reference: IReference) => void;
 }
 
-export default function AddPanel({ isOpen, onClose, references, projectId, onReferenceAdded }: AddPanelProps) {
-  const { currentTeam } = useAuth();
+export default function AddPanel({ isOpen, onClose, references, projectId }: AddPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -78,11 +75,10 @@ export default function AddPanel({ isOpen, onClose, references, projectId, onRef
       return;
     }
 
-    console.log("currentTeam: ", currentTeam);
     setUploadProgress(0);
     setIsUploading(true);
     const timestamp = Date.now();
-    const storageRef = ref(storage, `/teams/${teamId}/projects/${projectId}/references/${timestamp}_${uploadedFile.name}`);
+    const storageRef = ref(storage, `/projects/${projectId}/references/${timestamp}_${uploadedFile.name}`);
     const uploadTask = uploadBytesResumable(storageRef, uploadedFile);
     uploadTask.on('state_changed', (snapshot) => {
       const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
@@ -101,23 +97,16 @@ export default function AddPanel({ isOpen, onClose, references, projectId, onRef
         body: formData,
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("RESULT: ", result);
-
-        setUploadedFile(null);
-        setUploadProgress(0);
-        onReferenceAdded(result.reference as IReference);
-        onClose();
-      } else {
-        throw new Error('Upload failed');
-      }
+      const result = await response.json();
+      console.log("RESULT: ", result);
     } catch (error) {
       console.error('Upload error:', error);
       alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      setUploadedFile(null);
+      onClose();
     }
   };
 

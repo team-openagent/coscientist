@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
+import { OutputBlockData } from '@editorjs/editorjs';
 
 export interface IProject extends Document{
   _id: Types.ObjectId; 
@@ -104,14 +105,11 @@ export const Reference = mongoose.models.Reference || mongoose.model<IReference>
 
 
 //const blockType = ['paragraph', 'header', 'image'];
-export interface IPaper {
-  project_id: string; // UUID foreign key
+export interface IPaper extends Document {
+  _id: Types.ObjectId;
+  project_id: Types.ObjectId; // MongoDB ObjectId reference
   time: string;
-  blocks: Array<{
-    id: string;
-    type: string;
-    data: Record<string, unknown>;
-  }>;
+  blocks: OutputBlockData[];
 }
 
 const paperSchema: Schema = new Schema({
@@ -119,7 +117,7 @@ const paperSchema: Schema = new Schema({
   project_id: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
   time: { type: String, required: true },
   blocks: { type: Array, required: true, default: [] },
-})
+});
 
 export const Paper = mongoose.models.Paper || mongoose.model<IPaper>('Paper', paperSchema);
 

@@ -84,12 +84,12 @@ export default function PaperEditor({
               }
             }
           },
-          Math: {
+          latex: {
             class: EJLaTeX,
             shortcut: 'CMD+SHIFT+M',
             config: {}
           },
-          codeTool: CodeTool,
+          code: CodeTool,
           alignmentTuneTool: {
             class: AlignmentTuneTool,
             tunes: false,

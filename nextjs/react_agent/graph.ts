@@ -1,20 +1,72 @@
 import { AIMessage, SystemMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { Annotation, StateGraph, messagesStateReducer, interrupt, Command } from "@langchain/langgraph";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
-
 import { ConfigurableAnnotation, defaultConfiguration } from "./configuration.js";
-import { TOOLS } from "./tools.js";
+//import { TOOLS } from "./tools.js";
 import { ChatOpenAI } from "@langchain/openai";
 
+// Setting store
+import { connectToDatabase } from "@/lib/mongodb";
+const client = (await connectToDatabase()).connection.getClient();
+
+import { MongoDBStore } from "@langchain/mongodb";
+const storeCollection = client.db("test").collection("LongtermMemory");
+const store = new MongoDBStore({
+  collection: storeCollection
+});
+
+// Setting checkpointer
+import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
+const checkpointer = new MongoDBSaver({
+  client: client
+});
+
+// RAG: Load & Split & Store
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
+import { RecursiveCharacterTextSplitter} from "@langchain/textsplitters";
+import path from "path";
+const embeddings = new OpenAIEmbeddings({
+  model: "text-embedding-3-large"
+});
+const vectorStoreCollection = client.db("test").collection("VectorStore")
+const vectorStore = new MongoDBAtlasVectorSearch(embeddings, {
+  collection: vectorStoreCollection,
+  indexName: "vector_index",
+  textKey: "text",
+  embeddingKey: "embedding",
+})
+const directoryLoader = new DirectoryLoader("../../path", {
+  ".pdf": (path: string) => new PDFLoader(path),
+})
+const dirDocs = await directoryLoader.load();
+const textSplitter = new RecursiveCharacterTextSplitter({
+  chunkSize: 1000,
+  chunkOverlap: 200,
+})
+const splitDocs = await textSplitter.splitDocuments(dirDocs);
+
+// index chunks
+await vectorStore.addDocuments(splitDocs);
+const retreive = async (state:  typeof GraphAnnotation.State) => {
+  const retrievedDocs = await vectorStore.similaritySearch(state.input_query);
+  return {context: retrievedDocs};
+}
+
+
+// State
 type Block = Object
 const GraphAnnotation = Annotation.Root({
-    paper_sections: Annotation<string[]>,
-    research_notes: Annotation<string>,
-    plan: Annotation<string>,
-    draft: Annotation<Block[]>,
-    review: Annotation<string>,
-    final_draft: Annotation<Block[]>,
-    messages: Annotation<BaseMessage[]>({reducer: messagesStateReducer}),
+  input_query: Annotation<string>,
+  paper_sections: Annotation<string[]>,
+  research_notes: Annotation<string>,
+  plan: Annotation<string>,
+  draft: Annotation<Block[]>,
+  review: Annotation<string>,
+  final_draft: Annotation<Block[]>,
+  messages: Annotation<BaseMessage[]>({reducer: messagesStateReducer}),
 })
 
 
@@ -25,7 +77,7 @@ async function callModelNode(
 ): Promise<typeof GraphAnnotation.Update> {
   config = defaultConfiguration(config);
 
-  const model = (config.model as ChatOpenAI).bindTools(TOOLS);
+// const model = (config.model as ChatOpenAI).bindTools(TOOLS);
 
 //  const response = await model.invoke([
 //    ...[
@@ -104,6 +156,7 @@ const workflow = new StateGraph({
   .addEdge("finalizer", "__end__")
 
 export const graph = workflow.compile({
+  checkpointer: checkpointer,
   interruptBefore: [], // if you want to update the state before calling the tools
   interruptAfter: [],
 });

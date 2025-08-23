@@ -122,11 +122,19 @@ const paperSchema: Schema = new Schema({
 export const Paper = mongoose.models.Paper || mongoose.model<IPaper>('Paper', paperSchema);
 
 
-export interface Topic {
-  topic_id: string; // UUID primary key
+export interface ITopic extends Document {
+  _id: Types.ObjectId; // UUID primary key
   title: string;
   last_used_at: Date;
 }
+
+const topicSchema: Schema = new Schema({
+  _id: { type: Schema.Types.ObjectId, auto: true },
+  title: { type: String, required: true },
+  last_used_at: { type: Date, default: Date.now },
+})
+
+export const Topic = mongoose.models.Topic || mongoose.model<ITopic>("Topic", topicSchema);
 
 export interface ChatMessage {
   _id?: string; // MongoDB ObjectId as string
@@ -140,3 +148,6 @@ export interface ChatMessage {
     [key: string]: string | number | boolean | undefined;
   };
 }
+
+
+

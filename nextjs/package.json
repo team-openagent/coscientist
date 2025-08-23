@@ -15,6 +15,9 @@
     "@editorjs/header": "^2.8.8",
     "@editorjs/image": "^2.10.3",
     "@heroicons/react": "^2.2.0",
+    "@langchain/core": "^0.3.72",
+    "@langchain/langgraph": "^0.4.6",
+    "@langchain/openai": "^0.6.9",
     "@tailwindcss/typography": "^0.5.16",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.1",
@@ -29,7 +32,8 @@
     "next": "15.4.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-resizable-panels": "^3.0.3"
+    "react-resizable-panels": "^3.0.3",
+    "tslab": "^1.0.22"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

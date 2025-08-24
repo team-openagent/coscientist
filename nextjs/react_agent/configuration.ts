@@ -3,12 +3,12 @@
  */
 import { Annotation } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
-import { GENERATE_BLOCKS_AGENT } from "./prompts.js";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 export const ConfigurableAnnotation = Annotation.Root({
+  thread_id: Annotation<string>,
   model: Annotation<BaseChatModel>,
-  promptTemplate: Annotation<string>,
 });
 
 export function defaultConfiguration(
@@ -16,9 +16,7 @@ export function defaultConfiguration(
 ): typeof ConfigurableAnnotation.State {
   const configurable = config ?? {};
   return {
-    model: new ChatOpenAI({
-      model: "gpt-5-mini",
-    }),
-    promptTemplate: configurable.promptTemplate ?? GENERATE_BLOCKS_AGENT,
+    thread_id: "1",
+    model: new ChatOpenAI({model: "gpt-5-mini"}),
   };
 }

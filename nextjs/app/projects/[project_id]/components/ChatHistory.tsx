@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { CheckpointTuple } from '@langchain/langgraph-checkpoint';
+import { Message } from './AIChat';
 
 interface ChatHistoryProps {
-  messages: CheckpointTuple[];
+  messages: Message[];
   isTyping: boolean;
 }
 

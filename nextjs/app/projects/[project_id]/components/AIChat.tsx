@@ -4,9 +4,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { IReference, ITopic } from '@/domain/model';
 import ChatHead from './ChatHead';
 import ChatInput from './ChatInput';
-import { getTypeIcon } from '../utils/referenceUtils';
+import ChatHistory from './ChatHistory';
 
-interface Message {
+export interface Message {
   id: string;
   content: string;
   type: 'user' | 'assistant';

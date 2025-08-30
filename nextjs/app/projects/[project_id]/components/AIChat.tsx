@@ -103,13 +103,9 @@ export default function AIChat({
       <ChatHead
         projectId={projectId}
         topics={topics}
-        currentTopicId={currentTopicId}
-        showAllTopics={showAllTopics}
-        hasMoreTopics={hasMoreTopics}
-        onTopicClick={handleTopicClick}
-        onDeleteTopic={handleDeleteTopic}
-        onToggleShowAllTopics={() => setShowAllTopics(!showAllTopics)}
-        formatTopicTime={formatTopicTime}
+        setTopics={setTopics}
+        currentTopic={currentTopic}
+        setCurrentTopic={setCurrentTopic}
       />
 
       <ChatHistory

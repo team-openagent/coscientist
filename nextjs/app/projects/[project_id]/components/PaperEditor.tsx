@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { GlobeAltIcon, ShareIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import {
+  GlobeAltIcon,
+  ShareIcon,
+  DocumentArrowDownIcon,
+} from '@heroicons/react/24/outline';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
 import { fetchWithAuth } from '@/lib/utils';
@@ -18,16 +22,14 @@ import Shortcut from '@codexteam/shortcuts';
 import EJLaTeX from 'editorjs-latex';
 
 import { IPaper } from '@/lib/mongo/model';
+import DelimiterTool from '@/app/editorjs/tools/DelimiterTool';
 
 interface PaperEditorProps {
   holder: string;
   projectId: string;
 }
 
-export default function PaperEditor({
-  holder,
-  projectId,
-}: PaperEditorProps) {
+export default function PaperEditor({ holder, projectId }: PaperEditorProps) {
   const editorRef = useRef<EditorJS | null>(null);
   const [paper, setPaper] = useState<IPaper | null>(null);
 
@@ -38,29 +40,18 @@ export default function PaperEditor({
         holder: holder,
         placeholder: 'Start writing your paper...',
         data: {
-          blocks: [
-            {
-              type: "header",
-              data: {
-                text: "Hello",
-                level: 1
-              },
-              tunes: {
-                alignmentTuneTool: {
-                  alignment: "center"
-                }
-              }
-            }
-          ]
+          blocks: [],
         },
         tools: {
+          delimiter: DelimiterTool,
+
           header: {
             class: Header, // TODO: fix this
             config: {
-              levels: [1,2,3],
+              levels: [1, 2, 3],
               defaultLevel: 2,
             },
-            tunes: ["alignmentTuneTool"]
+            tunes: ['alignmentTuneTool'],
           },
           imageTool: {
             class: ImageTool,
@@ -71,76 +62,82 @@ export default function PaperEditor({
                 },
                 uploadByFile: async (file: File) => {
                   const timestamp = Date.now();
-                  const storageRef = ref(storage, `/projects/${projectId}/images/${timestamp}_${file.name}`);
-                  const uploadTask = await uploadBytesResumable(storageRef, file);
+                  const storageRef = ref(
+                    storage,
+                    `/projects/${projectId}/images/${timestamp}_${file.name}`
+                  );
+                  const uploadTask = await uploadBytesResumable(
+                    storageRef,
+                    file
+                  );
                   const url = await getDownloadURL(uploadTask.ref);
                   console.log(url);
                   return {
                     success: 1,
                     file: {
                       url: url,
-                    }
-                  }
-                }
-              }
-            }
+                    },
+                  };
+                },
+              },
+            },
           },
           latex: {
             class: EJLaTeX,
             shortcut: 'CMD+SHIFT+M',
-            config: {}
+            config: {},
           },
           code: CodeTool,
           alignmentTuneTool: {
             class: AlignmentTuneTool,
             tunes: false,
             config: {
-              default: "left",
-            }
-          }
+              default: 'left',
+            },
+          },
         },
-        tunes: ["alignmentTuneTool"],
+        tunes: ['alignmentTuneTool'],
         onChange: (api, event) => {
           event = {
-            type: "string",
+            type: 'string',
             details: {
-              target: "BlockAPI",
+              target: 'BlockAPI',
             },
-          }
+          };
         },
         onReady: async () => {
-          const editor = editorRef.current
-          new Undo({editor});
-          new DragDrop(editor, "2px solid #fff");
+          const editor = editorRef.current;
+          new Undo({ editor });
+          new DragDrop(editor, '2px solid #fff');
           const paper = await fetchPaper();
           editor?.blocks.render(paper || {});
 
           new Shortcut({
             name: 'CTRL+S',
             on: document.body,
-            callback: function(event: KeyboardEvent) {
+            callback: function (event: KeyboardEvent) {
               event.preventDefault();
-              editor?.save().then( savedData => {
+              editor?.save().then((savedData) => {
                 // POST method
                 fetchWithAuth(`/api/project/${projectId}/paper`, {
                   method: 'POST',
-                  body: JSON.stringify(savedData)
+                  body: JSON.stringify(savedData),
                 })
-                .then(response => response.json())
-                .then(data => {
-                  console.log(data);
-                })
-                .catch(error => {
-                  console.error('Error:', error);
-                });
-              })
-            }
-          })
-        }
-      })
+                  .then((response) => response.json())
+                  .then((data) => {
+                    console.log(data);
+                  })
+                  .catch((error) => {
+                    console.error('Error:', error);
+                  });
+              });
+            },
+          });
+        },
+      });
     }
     return () => {
-      if(editorRef.current && editorRef.current.destroy) {
+      if (editorRef.current && editorRef.current.destroy) {
         editorRef.current.destroy();
         editorRef.current = null;
       }
@@ -172,14 +169,17 @@ export default function PaperEditor({
     if (editorRef.current) {
       try {
         const savedData = await editorRef.current.save();
-        const response = await fetchWithAuth(`/api/project/${projectId}/paper`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(savedData)
-        });
-        
+        const response = await fetchWithAuth(
+          `/api/project/${projectId}/paper`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(savedData),
+          }
+        );
+
         if (response.ok) {
           const data = await response.json();
           console.log('Paper saved successfully:', data);
@@ -200,7 +200,7 @@ export default function PaperEditor({
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-600"> </span>
         </div>
-        
+
         {/* Right-aligned actions */}
         <div className="flex items-center space-x-2">
           <button
@@ -229,12 +229,13 @@ export default function PaperEditor({
 
       {/* EditorJS Container */}
       <div className="flex-1 overflow-auto text-black">
-        <div 
-          id="editorjs-container"
-          className="h-full"
+        <div
+          id={holder}
+          className="h-full editor"
           style={{ minHeight: 'calc(100vh - 80px)' }}
+          spellCheck={false}
         />
       </div>
     </div>
   );
-} 
+}

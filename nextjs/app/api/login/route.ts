@@ -7,7 +7,6 @@ import { User, IUser, Team, ITeam } from '@/lib/mongo/model';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-
 export async function POST(request: NextRequest) {
   console.log("POST request", request);
   const { idToken } = await request.json();
@@ -31,7 +30,11 @@ export async function POST(request: NextRequest) {
   await connectToDatabase();
   const user = await User.findOne({ uid: uid });
   if (!user) {
-    const newUser: IUser = new User({ uid: uid, email: email, display_name: displayName});
+    const newUser: IUser = new User({
+      uid: uid,
+      email: email,
+      display_name: displayName,
+    });
     await newUser.save();
 
     // Create a team named "personal" for the new user
@@ -56,7 +59,7 @@ export async function POST(request: NextRequest) {
     displayName: decodedToken.name || email,
     photoURL: decodedToken.picture,
     iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7), // 7 days
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
   };
 
   // Generate JWT token
@@ -72,12 +75,13 @@ export async function POST(request: NextRequest) {
     },
     expiresIn: '7d',
   });
+
   response.cookies.set('authToken', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production', // Enable HTTPS in the production environment
     sameSite: 'lax', // Prevent CSRF attacks
     maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: '/'
+    path: '/',
   });
 
   return response;

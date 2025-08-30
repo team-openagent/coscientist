@@ -4,19 +4,15 @@
 import { Annotation } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 export const ConfigurableAnnotation = Annotation.Root({
   thread_id: Annotation<string>,
   model: Annotation<BaseChatModel>,
 });
 
-export function defaultConfiguration(
-  config: typeof ConfigurableAnnotation.State,
-): typeof ConfigurableAnnotation.State {
-  const configurable = config ?? {};
+export function defaultConfiguration(): typeof ConfigurableAnnotation.State {
   return {
-    thread_id: "1",
+    thread_id: "68afa28aac183d3329bd2989",
     model: new ChatOpenAI({model: "gpt-5-mini"}),
   };
 }

@@ -61,7 +61,7 @@ export default function Editor({params}: {params: Promise<PathParams>}) {
   // Common panel styles
   const panelStyles = "transition-all duration-300";
   const collapsedWidth = "w-12";
-  const expandedWidth = "max-w-1/5";
+  const expandedWidth = "w-1/5";
 
   return (
     <div className="h-screen bg-gray-50 relative">
@@ -93,7 +93,10 @@ export default function Editor({params}: {params: Promise<PathParams>}) {
         {/* Right Panel - AI Chat */}
         <div className={`${panelStyles} ${isChatPanelCollapsed ? collapsedWidth : expandedWidth}`}>
           {!isChatPanelCollapsed && (
-            <AIChat references={references} />
+            <AIChat 
+              projectId={projectId}
+              references={references}
+            />
           )}
           
           {/* Chat Panel Toggle Button */}

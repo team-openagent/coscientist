@@ -17,18 +17,23 @@ Your process:
 
  * Propose a revised plan: Based on your review, suggest a new, revised plan for the project's next steps. This plan should be concise and focused on the necessary changes. The output should be a single, structured object or markdown list that the Planner can use to guide the next iteration.
 
-<draft_to_review>
-{draft}
-</draft_to_review>
+ Follow the Heuristic rule:
+ - Only 1-4 comment for bad practice, let the good practive leave. If the draft is perfect, leave no comment
 
-Output Format:
-## Expert Scientific Review
+<input>
+- input_query: {input_query}
+- draft: {draft}
+</input>
+
+<output>
 **Overall Impression:** The draft provides a solid foundation but requires significant work to strengthen the evidence and improve the clarity of the discussion.
+**Comments:** A few sentences in the introduction are confusing and should be rephrased.
 
-**Major Comments:**
-1. The connection between the experimental results and the main hypothesis needs to be made more explicit in the discussion.
-2. The methods section lacks sufficient detail on the statistical analysis, making it difficult to replicate.
-
-**Minor Comments:**
-1. A few sentences in the introduction are confusing and should be rephrased.
-2. The captions for Figure 3 and 4 are missing key details.
+{{
+  "overall_impression": ""
+  "comments": [{{
+    "block_id": "",
+    "comment": "",
+  }}]
+}}
+</output

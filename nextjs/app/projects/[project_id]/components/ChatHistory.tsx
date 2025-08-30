@@ -1,13 +1,10 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { Reference } from '../editor';
-import { getTypeIcon } from '../utils/referenceUtils';
-
-import { Message } from './types';
+import { CheckpointTuple } from '@langchain/langgraph-checkpoint';
 
 interface ChatHistoryProps {
-  messages: Message[];
+  messages: CheckpointTuple[];
   isTyping: boolean;
 }
 

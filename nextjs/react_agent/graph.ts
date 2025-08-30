@@ -1,11 +1,13 @@
-import { AIMessage, SystemMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { AIMessage, SystemMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
+import { v4 as uuidv4 } from 'uuid';
 import {StateGraph, interrupt, Command, START, END } from "@langchain/langgraph";
-import { ToolNode } from "@langchain/langgraph/prebuilt";
-import { ConfigurableAnnotation, defaultConfiguration } from "./configuration.js";
+import { ConfigurableAnnotation } from "./configuration.js";
 //import { TOOLS } from "./tools.js";
 import { ChatOpenAI } from "@langchain/openai";
-import { loadPromptTemplateFromFile } from "./prompt/index.js";
+import { loadPromptTemplateFromFile } from "./prompt/index";
+import { GraphAnnotation,reviewSchema, blockSchema } from "./state";
+import { z } from "zod";
 
 // Setting store
 import { connectToDatabase } from "@/lib/mongodb";
@@ -41,53 +43,23 @@ const vectorStore = new MongoDBAtlasVectorSearch(embeddings, {
   textKey: "text",
   embeddingKey: "embedding",
 })
-const directoryLoader = new DirectoryLoader("../../path", {
-  ".pdf": (path: string) => new PDFLoader(path),
-})
-const dirDocs = await directoryLoader.load();
-const textSplitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 1000,
-  chunkOverlap: 200,
-})
-const splitDocs = await textSplitter.splitDocuments(dirDocs);
+//const directoryLoader = new DirectoryLoader("../../path", {
+//  ".pdf": (path: string) => new PDFLoader(path),
+//})
+//const dirDocs = await directoryLoader.load();
+//const textSplitter = new RecursiveCharacterTextSplitter({
+//  chunkSize: 1000,
+//  chunkOverlap: 200,
+//})
+//const splitDocs = await textSplitter.splitDocuments(dirDocs);
+//
+//// index chunks
+//await vectorStore.addDocuments(splitDocs);
+//const retreive = async (state: z.infer<typeof GraphAnnotation>) => {
+//  const retrievedDocs = await vectorStore.similaritySearch(state.input_query);
+//  return {context: retrievedDocs};
+//}
 
-// index chunks
-await vectorStore.addDocuments(splitDocs);
-const retreive = async (state: z.infer<typeof GraphAnnotation>) => {
-  const retrievedDocs = await vectorStore.similaritySearch(state.input_query);
-  return {context: retrievedDocs};
-}
-
-
-// State
-import "@langchain/langgraph/zod"
-import {MessagesZodState} from "@langchain/langgraph";
-import { z } from "zod";
-const planSchema = z.object({
-  task: z.string().describe(""),
-  agent: z.string().describe(""),
-  section: z.optional(z.string().describe("")),
-}).describe("");
-const blockSchema = z.object({}).describe("");
-const commentSchema = z.object({
-  block_id: z.string().describe(""),
-  comment: z.string().describe(""),
-});
-const reviewSchema = z.object({
-  overall_impression: z.string().describe(""),
-  major_comments: z.array(commentSchema),
-  minor_comments: z.array(commentSchema),
-});
-let GraphAnnotation = z.object({
-  input_query: z.string().describe(""),
-  research_note: z.string().describe(""),
-  plans: z.array(planSchema),
-  reviews: z.array(reviewSchema), 
-  old_draft: z.array(blockSchema),
-  new_draft: z.array(blockSchema),
-  final_draft: z.array(blockSchema),
-  ...MessagesZodState.shape,
-});
 
 // Node
 import { ChatPromptTemplate } from "@langchain/core/prompts";
@@ -96,7 +68,7 @@ async function callModelNode(
   state: typeof GraphAnnotation,
   config: typeof ConfigurableAnnotation.State,
 ) {
-  config = defaultConfiguration(config);
+  // config = defaultConfiguration(config);
 
 // const model = (config.model as ChatOpenAI).bindTools(TOOLS);
 
@@ -128,133 +100,157 @@ function humanReviewNode(state: z.infer<typeof GraphAnnotation>): Command {
 async function SupervisorNode(
   state: z.infer<typeof GraphAnnotation>,
   config: RunnableConfig<typeof ConfigurableAnnotation.State>,
-): Promise<z.infer<typeof GraphAnnotation>> {
+): Promise<Command> {
+  // Increment recursion counter
+  state.recursion_count = (state.recursion_count || 0) + 1;
+  
   const promptTemplate = PromptTemplate.fromTemplate(loadPromptTemplateFromFile("supervisor"));
   const formattedPrompt = await promptTemplate.invoke({
+    input_query: state.input_query,
     old_draft: state.old_draft,
     new_draft: state.new_draft,
-    input_query: state.input_query,
-    reviews: state.reviews,
+    review: state.reviews[state.reviews.length - 1],
   });
-  //const prompt = ChatPromptTemplate.fromMessages([
-  //  new SystemMessage({content: formattedPrompt.toString()}),
-  //])
 
-  const llm = (config.configurable?.model as ChatOpenAI).withStructuredOutput(planSchema)
-  const plans = await llm.invoke([
-    ...state.messages,
+  const llm = (config.configurable?.model as ChatOpenAI).withStructuredOutput(z.object({
+    route: z.enum(["editor", "reviewer", "finalizer"]),
+  }));
+  const response = await llm.invoke([
+    ...state.reasonings.map((reasoning) => new AIMessage({content: reasoning})),
     new SystemMessage({content: formattedPrompt.toString()}),
   ]);
 
-  console.log(plans);
-  state.plans.push(plans);
-  return state;
+  // Check recursion limit - if reached, force go to finalizer
+  const RECURSION_LIMIT = 5; // Maximum number of cycles before forcing finalization
+  if (state.recursion_count > RECURSION_LIMIT) {
+    return new Command({ goto: "finalizer" });
+  }
+
+  if (response.route === "editor") {
+    return new Command({ goto: "editor" ,update: state});
+  } else if (response.route === "reviewer") {
+    return new Command({ goto: "reviewer" ,update: state});
+  } else if (response.route === "finalizer") {
+    return new Command({ goto: "finalizer" ,update: state});
+  } else {
+    throw new Error(`Unknown next_node: ${response.route}`);
+  }
 }
 
 
-async function PlannerNode(
+async function EditorNode(
   state: z.infer<typeof GraphAnnotation>,
   config: RunnableConfig<typeof ConfigurableAnnotation.State>,
-): Promise<z.infer<typeof GraphAnnotation>> {
-  const promptTemplate = PromptTemplate.fromTemplate(loadPromptTemplateFromFile("planner"));
-  const formattedPrompt = await promptTemplate.invoke({
-    old_draft: state.old_draft,
-    new_draft: state.new_draft,
-    input_query: state.input_query,
-    reviews: state.reviews,
-  });
-  //const prompt = ChatPromptTemplate.fromMessages([
-  //  new SystemMessage({content: formattedPrompt.toString()}),
-  //])
+): Promise<Command> {
 
-  const llm = (config.configurable?.model as ChatOpenAI).withStructuredOutput(planSchema)
-  const plans = await llm.invoke([
-    ...state.messages,
-    new SystemMessage({content: formattedPrompt.toString()}),
-  ]);
-
-  console.log(plans);
-  state.plans.push(plans);
-  return state;
-}
-
-async function WriterNode(
-  state: z.infer<typeof GraphAnnotation>,
-  config: RunnableConfig<typeof ConfigurableAnnotation.State>,
-): Promise<z.infer<typeof GraphAnnotation>> {
-  const promptTemplate = PromptTemplate.fromTemplate(loadPromptTemplateFromFile("writter"));
+  const promptTemplate = PromptTemplate.fromTemplate(loadPromptTemplateFromFile("editor"));
   const formattedPrompt = await promptTemplate.invoke({
     input_query: state.input_query,
     research_note: state.research_note,
-    old_draft: state.old_draft,
-    reviews: state.reviews,
+    draft: state.new_draft,
+    review: state.reviews[state.reviews.length - 1],
   });
 
-  const llm = (config.configurable?.model as ChatOpenAI).withStructuredOutput(z.array(blockSchema))
-  const newDraft = await llm.invoke([
-    ...state.messages,
+  const llm = (config.configurable?.model as ChatOpenAI).withStructuredOutput(z.object({
+    new_draft: z.array(blockSchema),
+    reasoning: z.string().describe("The reasoning of the agent"),
+  }))
+  const response = await llm.invoke([
+    ...state.reasonings.map((reasoning) => new AIMessage({content: reasoning})),
     new SystemMessage({content: formattedPrompt.toString()}),
   ]);
-
-  state.new_draft = newDraft;
-  return state;
+  console.log("Response review: ", state.reviews);
+  state.new_draft = response.new_draft.map((block) => ({
+    ...block,
+    id: uuidv4(),
+  }));
+  state.reasonings.push(response.reasoning);
+  return new Command({
+    goto: "reviewer",
+    update: state,
+  });
 }
 
 async function ReviewerNode(
   state: z.infer<typeof GraphAnnotation>,
   config: RunnableConfig<typeof ConfigurableAnnotation.State>,
-): Promise<z.infer<typeof GraphAnnotation>> {
-  let draftToReview = state.new_draft;
-  if (state.reviews.length == 0) {
-    draftToReview = state.old_draft;
-  }
+): Promise<Command> {
+  const draftToReview = state.new_draft;
+  // if (state.reviews.length == 0) {
+  //   draftToReview = state.old_draft;
+  // }
   const promptTemplate = PromptTemplate.fromTemplate(loadPromptTemplateFromFile("reviewer"));
   const formattedPrompt = await promptTemplate.invoke({
+    input_query: state.input_query,
     draft: draftToReview,
   });
 
-  const llm = (config.configurable?.model as ChatOpenAI).withStructuredOutput(reviewSchema);
-  const review = await llm.invoke([
-    ...state.messages,
+  const llm = (config.configurable?.model as ChatOpenAI).withStructuredOutput(z.object({
+    review: reviewSchema,
+    reasoning: z.string().describe("The reasoning history of the agent"),
+  }));
+  const response = await llm.invoke([
+    ...state.reasonings.map((reasoning) => new AIMessage({content: reasoning})),
     new SystemMessage({content: formattedPrompt.toString()}),
   ]);
 
-  state.reviews.push(review);
-  return state;
+  state.reviews.push(response.review);
+  state.reasonings.push(response.reasoning);
+  return new Command({
+    goto: "supervisor",
+    update: state,
+  });
 }
 
-import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { MessageHistory } from "@/domain/model";
 async function FinalizerNode(
   state: z.infer<typeof GraphAnnotation>,
-  config: LangGraphRunnableConfig<typeof ConfigurableAnnotation.State>,
-): Promise<z.infer<typeof GraphAnnotation>> {
-  const promptTemplate = PromptTemplate.fromTemplate(loadPromptTemplateFromFile("finalizer"));
-  config.store;
-  const formattedPrompt = await promptTemplate.invoke({
-    instruction: state.input_query,
-    reviews: state.reviews,
-    old_draft: state.old_draft,
-    new_draft: state.new_draft,
+  config: RunnableConfig<typeof ConfigurableAnnotation.State>,
+): Promise<Command> {
+  // Store the final stat 
+  const checkpoint = await checkpointer.getTuple({
+    configurable: {
+      thread_id: config.configurable?.thread_id,
+    }
   });
+  const checkpoint_id = checkpoint?.config.configurable?.checkpoint_id;
+  const messageHistory = new MessageHistory({
+    topic_id: config.configurable?.thread_id,
+    checkpoint_id: checkpoint_id,
+  });
+  await messageHistory.save();
 
-  const llm = (config.configurable?.model as ChatOpenAI).withStructuredOutput(z.array(blockSchema));
-  const finalDraft = await llm.invoke([
-    ...state.messages,
-    new SystemMessage({content: formattedPrompt.toString()}),
-  ]);
+  return new Command({goto: END });
+  // TODO:
+  // tool call to store the final draft into the IPaper of @/lib/mongodb.ts in the mongodb database 
+  //const promptTemplate = PromptTemplate.fromTemplate(loadPromptTemplateFromFile("finalizer"));
+  //const formattedPrompt = await promptTemplate.invoke({
+  //  instruction: state.input_query,
+  //  reviews: state.reviews,
+  //  old_draft: state.old_draft,
+  //  new_draft: state.new_draft,
+  //});
 
-  state.final_draft.push(finalDraft);
-  return state;
+  //const llm = (config.configurable?.model as ChatOpenAI).withStructuredOutput(z.object({
+  //  final_draft: z.array(blockSchema),
+  //}));
+  //const response = await llm.invoke([
+  //  ...state.reasonings.map((reasoning) => new AIMessage({content: reasoning})),
+  //  new SystemMessage({content: formattedPrompt.toString()}),
+  //]);
+
+  //state.final_draft = response.final_draft;
+  //return new Command({
+  //  goto: END,
+  //  update: state,
+  //});
 }
 
 const workflow = new StateGraph(GraphAnnotation , ConfigurableAnnotation)
   .addNode("supervisor", SupervisorNode, {
-    ends: ["planner", "reviewer", "finalizer"]
+    ends: ["editor", "reviewer", "finalizer"]
   })
-  .addNode("planner", PlannerNode, {
-    ends: ["writer"]
-  })
-  .addNode("writer", WriterNode, {
+  .addNode("editor", EditorNode, {
     ends: ["reviewer"]
   })
   .addNode("reviewer", ReviewerNode, {

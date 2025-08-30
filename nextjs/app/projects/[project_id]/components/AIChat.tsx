@@ -1,269 +1,173 @@
 'use client';
 
-import React, { useState } from 'react';
-import { IReference } from '@/domain/model';
-import { Topic, Message } from './types';
+import React, { useState, useRef, useEffect } from 'react';
+import { IReference, ITopic } from '@/domain/model';
 import ChatHead from './ChatHead';
-import TopicList from './TopicList';
-import ChatHistory from './ChatHistory';
 import ChatInput from './ChatInput';
+import { getTypeIcon } from '../utils/referenceUtils';
+
+interface Message {
+  id: string;
+  content: string;
+  type: 'user' | 'assistant';
+  timestamp: Date;
+  contextReferences?: IReference[];
+}
 
 interface AIChatProps {
   references: IReference[];
+  projectId: string;
 }
 
 export default function AIChat({
   references,
+  projectId,
 }: AIChatProps) {
-  // Topic management state
-  const [topics, setTopics] = useState<Topic[]>([
-    {
-      id: '1',
-      title: 'General Writing Help',
-      messages: [
-        {
-          id: '1',
-          type: 'assistant',
-          content: 'Hello! I\'m your AI writing assistant. I can help you with your document by analyzing your references and providing suggestions. You can add context from your references to get more specific help.',
-          timestamp: new Date()
-        }
-      ],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: '2',
-      title: 'Document Structure',
-      messages: [
-        {
-          id: '1',
-          type: 'assistant',
-          content: 'I can help you organize your document structure. What type of document are you working on?',
-          timestamp: new Date(Date.now() - 86400000) // 1 day ago
-        }
-      ],
-      createdAt: new Date(Date.now() - 86400000),
-      updatedAt: new Date(Date.now() - 86400000)
-    },
-    {
-      id: '3',
-      title: 'Reference Integration',
-      messages: [
-        {
-          id: '1',
-          type: 'assistant',
-          content: 'Let\'s work on integrating your references effectively into your document.',
-          timestamp: new Date(Date.now() - 172800000) // 2 days ago
-        }
-      ],
-      createdAt: new Date(Date.now() - 172800000),
-      updatedAt: new Date(Date.now() - 172800000)
-    }
-  ]);
+  // Message and scroll management
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   
-  const [currentTopicId, setCurrentTopicId] = useState<string>('1');
-  const [showAllTopics, setShowAllTopics] = useState(false);
+  // Topic management state
+  const [topics, setTopics] = useState<ITopic[]>([]);
+  const [currentTopic, setCurrentTopic] = useState<ITopic | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isEditingTopic, setIsEditingTopic] = useState(false);
-  const [editTopicTitle, setEditTopicTitle] = useState('');
+  const [selectedContextReferences, setSelectedContextReferences] = useState<IReference[]>([]);
 
-  // Get current topic and messages
-  const currentTopic = topics.find(topic => topic.id === currentTopicId);
-  const messages = currentTopic?.messages || [];
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    fetchTopics();
+  }, [projectId]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  async function fetchTopics() {
+    try {
+      const response = await fetch(`/api/project/${projectId}/topic`, {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'},
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch topics');
+      }
+
+      const fetchedTopics: ITopic[] = await response.json();
+      console.log("Fetched topics: ", fetchedTopics);
+      setTopics(fetchedTopics);
+
+      // Set the current topic to the first topic if none is selected
+      if (!currentTopic && fetchedTopics.length > 0) {
+        setCurrentTopic(fetchedTopics[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching topics:', error);
+      // TODO: Add error toast notification
+    }
+  }
+
+  const handleAddContext = (reference: IReference) => {
+    setSelectedContextReferences(prev => {
+      // Check if reference already exists
+      const exists = prev.some(ref => ref.id === reference.id);
+      if (exists) return prev;
+      return [...prev, reference];
+    });
+  };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
-
-    const userMessage: Message = {
+    const newMessage: Message = {
       id: Date.now().toString(),
-      type: 'user',
       content: inputValue,
+      type: 'user',
       timestamp: new Date(),
+      contextReferences: []
     };
 
-    // Add message to current topic
-    setTopics(prev => prev.map(topic => 
-      topic.id === currentTopicId 
-        ? {
-            ...topic,
-            messages: [...topic.messages, userMessage],
-            updatedAt: new Date()
-          }
-        : topic
-    ));
-    
+    setMessages(prev => [...prev, newMessage]);
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: getAIResponse(inputValue, references),
-        timestamp: new Date()
-      };
-      
-      // Add AI response to current topic
-      setTopics(prev => prev.map(topic => 
-        topic.id === currentTopicId 
-          ? {
-              ...topic,
-              messages: [...topic.messages, aiResponse],
-              updatedAt: new Date()
-            }
-          : topic
-      ));
-      
-      setIsTyping(false);
-    }, 1000);
+    // TODO: Add API call to send message and get response
+    setIsTyping(false);
   };
-
-  const getAIResponse = (userInput: string, contextRefs: IReference[]): string => {
-    const lowerInput = userInput.toLowerCase();
-    let response = '';
-    
-    if (contextRefs.length > 0) {
-      response += `Based on your selected references:\n`;
-      contextRefs.forEach(ref => {
-        response += `• ${ref.title} (${ref.type.toUpperCase()})\n`;
-      });
-      response += '\n';
-    }
-    
-    if (lowerInput.includes('help') || lowerInput.includes('assist')) {
-      response += 'I can help you with:\n• Writing suggestions\n• Reference integration\n• Document structure\n• Content analysis\n\nWhat specific aspect would you like help with?';
-    } else if (lowerInput.includes('structure') || lowerInput.includes('outline')) {
-      response += 'Here\'s a suggested document structure:\n\n1. Introduction\n2. Literature Review\n3. Methodology\n4. Results\n5. Discussion\n6. Conclusion\n\nWould you like me to elaborate on any section?';
-    } else if (lowerInput.includes('reference') || lowerInput.includes('cite')) {
-      response += 'I can help you integrate your references into your document. Select the references you want to use and I\'ll suggest how to incorporate them effectively.';
-    } else {
-      response += 'I\'m here to help with your writing! You can ask me about:\n• Document structure\n• Writing style\n• Reference integration\n• Content suggestions\n\nFeel free to add context from your references for more specific assistance.';
-    }
-    
-    return response;
-  };
-
-  const handleAddContext = () => {
-    // TODO: Implement file upload or context selection
-    console.log('Add context clicked');
-  };
-
-  const handleCreateNewTopic = () => {
-    const newTopic: Topic = {
-      id: Date.now().toString(),
-      title: 'New Conversation',
-      messages: [
-        {
-          id: '1',
-          type: 'assistant',
-          content: 'Hello! I\'m your AI writing assistant. How can I help you with your document today?',
-          timestamp: new Date()
-        }
-      ],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    setTopics(prev => [newTopic, ...prev]);
-    setCurrentTopicId(newTopic.id);
-  };
-
-  const handleDeleteTopic = (topicId: string) => {
-    if (topics.length <= 1) return; // Don't delete the last topic
-    
-    setTopics(prev => prev.filter(topic => topic.id !== topicId));
-    
-    // If we're deleting the current topic, switch to the first available topic
-    if (topicId === currentTopicId) {
-      const remainingTopics = topics.filter(topic => topic.id !== topicId);
-      if (remainingTopics.length > 0) {
-        setCurrentTopicId(remainingTopics[0].id);
-      }
-    }
-  };
-
-  const handleTopicClick = (topicId: string) => {
-    setCurrentTopicId(topicId);
-  };
-
-  const handleEditTopic = () => {
-    if (currentTopic) {
-      setIsEditingTopic(true);
-      setEditTopicTitle(currentTopic.title);
-    }
-  };
-
-  const handleSaveTopicEdit = () => {
-    if (editTopicTitle.trim()) {
-      setTopics(prev => prev.map(topic => 
-        topic.id === currentTopicId 
-          ? { ...topic, title: editTopicTitle.trim() }
-          : topic
-      ));
-    }
-    setIsEditingTopic(false);
-    setEditTopicTitle('');
-  };
-
-  const handleCancelTopicEdit = () => {
-    setIsEditingTopic(false);
-    setEditTopicTitle('');
-  };
-
-  const formatTopicTime = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} days ago`;
-    return date.toLocaleDateString();
-  };
-
-  // Get topics to display (first 3 always, rest when expanded)
-  const displayedTopics = showAllTopics ? topics : topics.slice(0, 2);
-  const hasMoreTopics = topics.length > 2;
-
 
 
   return (
     <div className="h-full bg-white border-l border-gray-200 flex flex-col">
       <ChatHead
-        currentTopicTitle={currentTopic ? currentTopic.title : 'Assistant'}
-        isEditingTopic={isEditingTopic}
-        editTopicTitle={editTopicTitle}
-        onEditTopic={handleEditTopic}
-        onSaveTopicEdit={handleSaveTopicEdit}
-        onCancelTopicEdit={handleCancelTopicEdit}
-        onEditTopicTitleChange={setEditTopicTitle}
-        onCreateNewTopic={handleCreateNewTopic}
-        hasCurrentTopic={!!currentTopic}
-      />
-
-      <TopicList
+        projectId={projectId}
         topics={topics}
-        currentTopicId={currentTopicId}
-        showAllTopics={showAllTopics}
-        hasMoreTopics={hasMoreTopics}
-        onTopicClick={handleTopicClick}
-        onDeleteTopic={handleDeleteTopic}
-        onToggleShowAllTopics={() => setShowAllTopics(!showAllTopics)}
-        formatTopicTime={formatTopicTime}
+        setTopics={setTopics}
+        currentTopic={currentTopic}
+        setCurrentTopic={setCurrentTopic}
       />
 
-      <ChatHistory
-        messages={messages}
-        isTyping={isTyping}
-      />
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages?.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-xs px-4 py-2 rounded-lg ${
+                message.type === 'user'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-800'
+              }`}
+            >
+              <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+              {message.contextReferences && message.contextReferences.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-blue-200">
+                  <div className="text-xs text-blue-200 mb-1">Context:</div>
+                  {message.contextReferences.map((ref) => (
+                    <div key={ref.id} className="text-xs text-blue-200 flex items-center space-x-1">
+                      {getTypeIcon(ref.type)}
+                      <span>{ref.title}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className={`text-xs mt-1 ${
+                message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
+              }`}>
+                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          </div>
+        ))}
+        
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
 
       <ChatInput
         inputValue={inputValue}
         onInputChange={setInputValue}
         onSendMessage={handleSendMessage}
-        onAddContext={handleAddContext}
+        references={selectedContextReferences}
+        onAddReference={handleAddContext}
+        onRemoveReference={(reference: IReference) => {
+          setSelectedContextReferences(prev => 
+            prev.filter(ref => ref.id !== reference.id)
+          );
+        }}
         onUploadImage={() => console.log('Upload image clicked')}
       />
     </div>

@@ -124,30 +124,32 @@ export const Paper = mongoose.models.Paper || mongoose.model<IPaper>('Paper', pa
 
 export interface ITopic extends Document {
   _id: Types.ObjectId; // UUID primary key
+  project_id: Types.ObjectId; // MongoDB ObjectId reference
   title: string;
   last_used_at: Date;
 }
 
 const topicSchema: Schema = new Schema({
   _id: { type: Schema.Types.ObjectId, auto: true },
+  project_id: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
   title: { type: String, required: true },
-  last_used_at: { type: Date, default: Date.now },
+  last_used_at: { type: Date, required: true, default: Date.now },
 })
 
 export const Topic = mongoose.models.Topic || mongoose.model<ITopic>("Topic", topicSchema);
 
-export interface ChatMessage {
-  _id?: string; // MongoDB ObjectId as string
-  session_id: string;
-  type: 'human' | 'ai';
-  content: string;
+export interface IMessageHistory extends Document {
+  _id: Types.ObjectId; // MongoDB ObjectId as string
+  topic_id: Types.ObjectId;
+  checkpoint_id: string;
   created_at: Date;
-  metadata?: {
-    project_id?: string;
-    user_id?: string;
-    [key: string]: string | number | boolean | undefined;
-  };
 }
 
+const messageHistorySchema: Schema = new Schema({
+  _id: { type: Schema.Types.ObjectId, auto: true },
+  topic_id: { type: Schema.Types.ObjectId, ref: 'Topic', required: true },
+  checkpoint_id: { type: String, required: true },
+  created_at: { type: Date, default: Date.now },
+})
 
-
+export const MessageHistory = mongoose.models.MessageHistory || mongoose.model<IMessageHistory>("MessageHistory", messageHistorySchema);

@@ -1,14 +1,20 @@
+
+import dotenv from 'dotenv';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({path: path.join(__dirname, '..', 'config', '.env.development')});
+
 import {graph} from "./graph";
 import * as fs from "fs";
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { GraphAnnotation } from "./state";
 import { defaultConfiguration } from "./configuration";
-import { defaultTextSplitter } from "@langchain/core/messages";
 import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
+import { pushPrompts } from './prompt';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+
 
 async function drawGraph() {
     const drawableGraph = await graph.getGraphAsync();
@@ -44,8 +50,8 @@ async function runGraph() {
         reviews: [],
         old_draft: [],
         new_draft: [],
-        final_draft: [],
-        reasonings: [],
+        explanations: [],
+        recursion_count: 0,
     });
     const stream = await graph.withConfig({
         configurable: defaultConfiguration(),
@@ -71,5 +77,6 @@ async function getState(thread_id: string) {
 }
 
 //await drawGraph().catch(console.error).finally(() => {});
-await runGraph().catch(console.error).finally(() => {});
+await pushPrompts().catch(console.error).finally(() => {});
+//await runGraph().catch(console.error).finally(() => {});
 //await getState("1").catch(console.error).finally(() => {});

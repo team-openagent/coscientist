@@ -10,6 +10,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/langchain": "^1.0.28",
+    "@ai-sdk/react": "^2.0.28",
     "@codexteam/shortcuts": "^1.2.0",
     "@editorjs/code": "^2.9.3",
     "@editorjs/editorjs": "^2.30.8",
@@ -34,6 +36,7 @@
     "firebase": "^12.1.0",
     "firebase-admin": "^12.0.0",
     "jose": "^6.0.12",
+    "langsmith": "^0.3.66",
     "mongoose": "^8.17.1",
     "next": "15.4.4",
     "pdf-parse": "^1.1.1",

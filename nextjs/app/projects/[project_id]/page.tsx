@@ -80,7 +80,7 @@ export default function Editor({params}: {params: Promise<PathParams>}) {
           {!isReferencePanelCollapsed && (
             <ReferenceManagement
               projectId={projectId}
-              references={references}
+              references={[]}
               onRemoveReference={removeReference}
             />
           )}

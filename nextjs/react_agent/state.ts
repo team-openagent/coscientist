@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const blockSchema = z.object({
   id: z.string().describe("Unique identifier of the block").optional().nullable(),
-  type: z.string().describe("The type of content block (e.g., 'paragraph', 'heading', 'code', 'image', 'math')"),
+  type: z.string().describe("The type of content block chosen from 'paragraph', 'heading', 'code', 'image', 'math'"),
   data: z.object({
     text: z.string().optional().nullable().describe("The textual content of the block"),
     level: z.number().optional().nullable().describe("The heading level (1-3) for heading blocks"),
@@ -18,14 +18,127 @@ export const blockSchema = z.object({
   }).describe("Styling and formatting options for the block"),
 });
 
+export const editorOutputSchema = {
+  "title": "editor-output",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "new_draft": {
+      "type": "array",
+      "description": "The new draft of the paper",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the block"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of content block",
+            "enum": [
+              "paragraph",
+              "heading",
+              "code",
+              "image",
+              "math"
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The textual content of the block"
+              },
+              "level": {
+                "type": "integer",
+                "description": "The heading level (1-3) for heading blocks",
+                "enum": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "file": {
+                "type": "object",
+                "description": "File attachment information for the block",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "The URL or path to the referenced file when type is 'image'"
+                  }
+                },
+                "required": [
+                  "url"
+                ],
+                "additionalProperties": false
+              },
+              "math": {
+                "type": "string",
+                "description": "Mathematical expression or equation in LaTeX format when type is 'math'"
+              }
+            },
+            "required": [
+              "level"
+            ],
+            "additionalProperties": false
+          },
+          "tunes": {
+            "type": "object",
+            "description": "Styling and formatting options for the block",
+            "properties": {
+              "alignmentTuneTool": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "alignment": {
+                    "type": "string",
+                    "enum": [
+                      "left",
+                      "center",
+                      "right"
+                    ]
+                  }
+                },
+                "required": []
+              }
+            },
+            "required": [
+              "alignmentTuneTool"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "explanation": {
+      "type": "string",
+      "description": "The explanation of the agent response"
+    }
+  },
+  "required": [
+    "new_draft",
+    "explanation"
+  ]
+}
+
 export const commentSchema = z.object({
   block_id: z.string().optional().nullable().describe("Unique identifier of the block being commented on. Use when you want to comment on a specific block."),
   comment: z.string().describe("The comment text providing feedback or suggestions"),
+  explanation: z.string().describe("The explanation of the comment"),
 });
 export const reviewSchema = z.object({
   overall_impression: z.string().describe("General assessment and overall quality rating of the content"),
   comments: z.array(commentSchema).describe("Critical issues and significant changes needed"),
 });
+
+
 
 export const GraphAnnotation = z.object({
   input_query: z.string().describe("The original research question or problem statement"),
@@ -33,12 +146,8 @@ export const GraphAnnotation = z.object({
   reviews: z.array(reviewSchema).describe("Peer review feedback and quality assessments"),
   old_draft: z.array(blockSchema).describe("Previous version of the document content"),
   new_draft: z.array(blockSchema).describe("Current working version with recent changes"),
-  final_draft: z.array(blockSchema).describe("Polished and finalized version ready for submission"),
-  reasonings: z.array(z.string()).describe("The reasoning history of the agent"),
+  explanations: z.array(z.string()).describe("The explanation history of the agent"),
   recursion_count: z.number().default(0).describe("Counter to track recursion cycles and prevent infinite loops"),
-  metadata: z.object({
-    final: z.boolean().optional().nullable().describe("Whether the final version of the document is being generated"),
-  }).optional().nullable(),
 });
 
 export const ResearchAbstraction = z.object({

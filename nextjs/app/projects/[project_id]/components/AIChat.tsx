@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IReference, ITopic } from '@/domain/model';
+import { IReference, ITopic } from '@/lib/model';
+import { fetchWithAuth } from '@/lib/utils';
 import ChatHead from './ChatHead';
 import ChatInput from './ChatInput';
 import ChatHistory from './ChatHistory';
@@ -48,11 +49,10 @@ export default function AIChat({
 
   async function fetchTopics() {
     try {
-      const response = await fetch(`/api/project/${projectId}/topic`, {
+      const response = await fetchWithAuth(`/api/project/${projectId}/topic`, {
         method: 'GET',
         headers: {'Content-Type': 'application/json'},
       });
-
       if (!response.ok) {
         throw new Error('Failed to fetch topics');
       }

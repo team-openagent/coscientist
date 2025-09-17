@@ -3,12 +3,13 @@ import app from '@/lib/firebase-admin';
 import { getAuth } from 'firebase-admin/auth';
 import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/mongodb';
-import { User, IUser, Team, ITeam } from '@/domain/model';
+import { User, IUser, Team, ITeam } from '@/lib/model';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 
 export async function POST(request: NextRequest) {
+  console.log("POST request", request);
   const { idToken } = await request.json();
 
   if (!idToken) {

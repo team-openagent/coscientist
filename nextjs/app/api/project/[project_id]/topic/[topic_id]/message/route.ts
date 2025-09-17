@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getUID } from '@/lib/auth';
-import { User, Project, IUser, IProject, ITeam, IMessageHistory, MessageHistory } from '@/domain/model';
+import { User, Project, IUser, IProject, ITeam, IMessageHistory, MessageHistory } from '@/lib/model';
 import { Types } from 'mongoose';
 import { MongoDBCheckpointer } from '@/lib/mongodb';
 import { CheckpointTuple } from '@langchain/langgraph-checkpoint';

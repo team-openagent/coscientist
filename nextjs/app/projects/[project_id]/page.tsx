@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, use } from 'react';
-import { IReference } from '@/domain/model';
+import { IReference } from '@/lib/model';
 import { ViewColumnsIcon } from '@heroicons/react/24/outline';
+import { fetchWithAuth } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 const PaperEditor = dynamic(() => import('@/app/projects/[project_id]/components/PaperEditor'), {
   ssr: false,
@@ -30,14 +31,14 @@ export default function Editor({params}: {params: Promise<PathParams>}) {
   };
 
   const fetchReferences = async (projectId: string) => {
-    const response = await fetch(`/api/project/${projectId}/reference`);
+    const response = await fetchWithAuth(`/api/project/${projectId}/reference`);
     const data = await response.json();
     setReferences(data.references);
   };
 
   // Reference management functions
   const removeReference = async (id: string) => {
-    const response = await fetch(`/api/project/${projectId}/reference/${id}`, {
+    const response = await fetchWithAuth(`/api/project/${projectId}/reference/${id}`, {
       method: 'DELETE',
     });
     

@@ -16,8 +16,13 @@ export async function middleware(request: NextRequest) {
   const authToken = request.cookies.get('authToken')?.value;
   if (!authToken) {
     return NextResponse.json(
-      { error: 'Authentication required' },
-      { status: 401 }
+      { error: 'Authentication required', redirect: '/login' },
+      { 
+        status: 401,
+        headers: {
+          'X-Redirect': '/login'
+        }
+      }
     );
   }
     
@@ -27,16 +32,26 @@ export async function middleware(request: NextRequest) {
     decoded = await jwtVerify(authToken, secret);
   } catch (error) {
     return NextResponse.json(
-      { error: 'Invalid token' },
-      { status: 401 }
+      { error: 'Invalid token', redirect: '/login' },
+      { 
+        status: 401,
+        headers: {
+          'X-Redirect': '/login'
+        }
+      }
     );
   }
     // Check if token is expired
   const currentTime = Math.floor(Date.now() / 1000);
   if (decoded.payload.exp && decoded.payload.exp < currentTime) {
     return NextResponse.json(
-      { error: 'Token expired' },
-      { status: 401 }
+      { error: 'Token expired', redirect: '/login' },
+      { 
+        status: 401,
+        headers: {
+          'X-Redirect': '/login'
+        }
+      }
     );
   }
       

@@ -4,7 +4,7 @@ import { defaultConfiguration } from '@/react_agent/configuration';
 import { GraphAnnotation } from '@/react_agent/state';
 import { getUID } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/mongodb';
-import { User, Project, IUser } from '@/domain/model';
+import { User, Project, IUser } from '@/lib/model';
 import { Types } from 'mongoose';
 
 export async function POST(request: NextRequest) {
@@ -18,7 +18,16 @@ export async function POST(request: NextRequest) {
     // Get user authentication
     const uid = getUID(request);
     if (!uid) {
-      return new Response('Unauthorized', { status: 401 });
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', redirect: '/login' }), 
+        { 
+          status: 401,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Redirect': '/login'
+          }
+        }
+      );
     }
 
     // Connect to database and verify user permissions

@@ -8,3 +8,23 @@ export const formatDate = (dateString: string | Date) => {
     return 'Unknown date';
   }
 };
+
+
+/**
+ * Enhanced fetch function that automatically redirects to login on 401 responses
+ */
+export async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+  const response = await fetch(url, {
+    ...options,
+    credentials: 'include', // Include cookies for authentication
+  });
+
+  // Check if the response is a 401 with redirect header
+  if (response.status === 401 && response.headers.get('X-Redirect') === '/login') {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  }
+
+  return response;
+}

@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { IProject, ITeam } from '@/domain/model';
+import { IProject, ITeam } from '@/lib/model';
 import { TrashIcon, ChevronDownIcon, CogIcon, ArrowRightOnRectangleIcon, ClockIcon, UserGroupIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { formatDate } from '@/lib/utils';
+import { formatDate, fetchWithAuth } from '@/lib/utils';
 
 
 export default function ProjectsPage() {
@@ -30,11 +30,8 @@ export default function ProjectsPage() {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/api/project?query=recent');
-      
-      if (!response.ok) { 
-        throw new Error('Failed to fetch projects'); }
-      
+      const response = await fetchWithAuth('/api/project?query=recent');
+
       const data = await response.json();
       if (data.success) {
         setProjects(data.projects);
@@ -48,7 +45,10 @@ export default function ProjectsPage() {
 
   const fetchTeams = async () => {
     try {
-      const response = await fetch('/api/team');
+      const response = await fetchWithAuth('/api/team');
+      //if (response.status === 401) { 
+      //  window.location.href = '/login';
+      //}
       if (!response.ok) { 
         throw new Error('Failed to fetch teams'); 
       }
@@ -61,7 +61,7 @@ export default function ProjectsPage() {
 
   const handleCreateProject = async (projectData: { name: string; team_id: string; }) => {
     try {
-      const response = await fetch('/api/project', {
+      const response = await fetchWithAuth('/api/project', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -179,10 +179,10 @@ interface LeftPanelProps {
   activeTab: 'recent' | ITeam;
   setActiveTab: (tab: 'recent' | ITeam) => void;
   teams: ITeam[];
-  fetchTeams: () => void;
+  setTeams: (teams: ITeam[]) => void;
 }
 
-function LeftPanel({ activeTab, setActiveTab, teams, fetchTeams }: LeftPanelProps) {
+function LeftPanel({ activeTab, setActiveTab, teams, setTeams }: LeftPanelProps) {
   const { user, logout } = useAuth();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showAddTeamModal, setShowAddTeamModal] = useState(false);
@@ -194,7 +194,7 @@ function LeftPanel({ activeTab, setActiveTab, teams, fetchTeams }: LeftPanelProp
   };
 
   const handleAddTeam = async () => {
-    const res = await fetch('/api/team', {
+    const res = await fetchWithAuth('/api/team', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -204,7 +204,8 @@ function LeftPanel({ activeTab, setActiveTab, teams, fetchTeams }: LeftPanelProp
 
     const data = await res.json();
     if (res.ok && data.team) {
-      fetchTeams();
+      setTeams([...teams, data.team]);
+      setActiveTab(data.team);
       setNewTeamName('');
       setShowAddTeamModal(false);
     }
@@ -307,7 +308,7 @@ function LeftPanel({ activeTab, setActiveTab, teams, fetchTeams }: LeftPanelProp
             <PlusIcon className="w-4 h-4 text-gray-400" />
           </button>
         </div>
-        {teams && teams.length > 0 && teams.map((team: ITeam) => (
+        {teams && teams.length > 0 && teams.map((team) => (
           <button
             key={team._id.toString()}
             onClick={() => {
@@ -539,7 +540,7 @@ function ProjectCard({ project, onDelete }: { project: IProject; onDelete: () =>
       return;
     }
     setIsDeleting(true);
-    await fetch(`/api/project/${project._id}`, { method: 'DELETE' });
+    await fetchWithAuth(`/api/project/${project._id}`, { method: 'DELETE' });
     onDelete();
     setIsDeleting(false);
     setShowDeleteConfirm(false);

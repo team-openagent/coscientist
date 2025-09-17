@@ -7,7 +7,7 @@ import {
   PhotoIcon
 } from '@heroicons/react/24/outline';
 
-import { IReference } from '@/domain/model';
+import { IReference } from '@/lib/model';
 
 interface ChatInputProps {
   inputValue: string;
@@ -80,7 +80,7 @@ export default function ChatInput({
         </div>
         
         {/* Row 3: Image upload and submit button */}
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end space-x-2 mb-4">
           <button
             onClick={onUploadImage}
             className="flex items-center justify-center space-x-2 p-1 hover:bg-gray-200 transition-colors text-gray-700"

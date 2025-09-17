@@ -133,12 +133,11 @@ export const commentSchema = z.object({
   comment: z.string().describe("The comment text providing feedback or suggestions"),
   explanation: z.string().describe("The explanation of the comment"),
 });
+
 export const reviewSchema = z.object({
   overall_impression: z.string().describe("General assessment and overall quality rating of the content"),
   comments: z.array(commentSchema).describe("Critical issues and significant changes needed"),
 });
-
-
 
 export const GraphAnnotation = z.object({
   input_query: z.string().describe("The original research question or problem statement"),

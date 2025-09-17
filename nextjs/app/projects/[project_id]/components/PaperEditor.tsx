@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { GlobeAltIcon, ShareIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
+import { fetchWithAuth } from '@/lib/utils';
 
 // EditorJS Tools
 import EditorJS from '@editorjs/editorjs';
@@ -16,7 +17,7 @@ import DragDrop from 'editorjs-drag-drop';
 import Shortcut from '@codexteam/shortcuts';
 import EJLaTeX from 'editorjs-latex';
 
-import { IPaper } from '@/domain/model';
+import { IPaper } from '@/lib/model';
 
 interface PaperEditorProps {
   holder: string;
@@ -121,7 +122,7 @@ export default function PaperEditor({
               event.preventDefault();
               editor?.save().then( savedData => {
                 // POST method
-                fetch(`/api/project/${projectId}/paper`, {
+                fetchWithAuth(`/api/project/${projectId}/paper`, {
                   method: 'POST',
                   body: JSON.stringify(savedData)
                 })
@@ -147,7 +148,7 @@ export default function PaperEditor({
   }, []);
 
   const fetchPaper = async () => {
-    const res = await fetch(`/api/project/${projectId}/paper`);
+    const res = await fetchWithAuth(`/api/project/${projectId}/paper`);
     const data = await res.json();
     if (data && data.paper) {
       setPaper(data.paper);
@@ -171,7 +172,7 @@ export default function PaperEditor({
     if (editorRef.current) {
       try {
         const savedData = await editorRef.current.save();
-        const response = await fetch(`/api/project/${projectId}/paper`, {
+        const response = await fetchWithAuth(`/api/project/${projectId}/paper`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

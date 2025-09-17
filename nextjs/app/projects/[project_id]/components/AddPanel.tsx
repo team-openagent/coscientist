@@ -2,9 +2,10 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { PlusIcon, MagnifyingGlassIcon, XMarkIcon, DocumentIcon } from '@heroicons/react/24/outline';
-import { IReference } from '@/domain/model';
+import { IReference } from '@/lib/model';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytesResumable } from 'firebase/storage';
+import { fetchWithAuth } from '@/lib/utils';
 
 interface AddPanelProps {
   isOpen: boolean;
@@ -92,7 +93,7 @@ export default function AddPanel({ isOpen, onClose, references, projectId }: Add
       formData.append('file', uploadedFile);
 
       // Simulate upload progress
-      const response = await fetch(`/api/project/${projectId}/reference`, {
+      const response = await fetchWithAuth(`/api/project/${projectId}/reference`, {
         method: 'POST',
         body: formData,
       });

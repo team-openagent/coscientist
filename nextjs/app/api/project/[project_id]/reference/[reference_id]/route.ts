@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getUID } from '@/lib/auth';
-import { Reference, IReference, User, Project, Team, IProject, ITeam, IUser } from '@/domain/model';
+import { Reference, IReference, User, Project, Team, IProject, ITeam, IUser } from '@/lib/model';
 import { } from "@/lib/firebase"
 import { Types } from 'mongoose';
 

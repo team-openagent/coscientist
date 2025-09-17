@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUID } from '@/lib/auth';
-import { Team, ITeam, User, IUser } from '@/domain/model';
+import { Team, ITeam, User, IUser } from '@/lib/model';
 import { connectToDatabase } from '@/lib/mongodb';
 
 export async function GET(request: NextRequest) {
+  console.log("GET request");
   const uid = getUID(request);
-  
+  console.log("UID: ", uid);
   // Find user and get their teams
   const user: IUser | null = await User.findOne({ uid: uid });
   if (!user) {
@@ -70,8 +71,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Error && error.message === 'User not authenticated') {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+        { error: 'Authentication required', redirect: '/login' },
+        { 
+          status: 401,
+          headers: {
+            'X-Redirect': '/login'
+          }
+        }
       );
     }
     

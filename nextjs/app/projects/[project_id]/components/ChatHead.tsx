@@ -9,8 +9,9 @@ import {
   TrashIcon, 
   ChatBubbleLeftRightIcon 
 } from '@heroicons/react/24/outline';
-import { ITopic } from '@/domain/model';
+import { ITopic } from '@/lib/model';
 import { Types } from 'mongoose';
+import { fetchWithAuth } from '@/lib/utils';
 
 const API_ENDPOINTS = {
   create: (projectId: string) => `/api/project/${projectId}/topic`,
@@ -19,7 +20,7 @@ const API_ENDPOINTS = {
 };
 
 async function createTopic(projectId: string): Promise<ITopic> {
-  const response = await fetch(API_ENDPOINTS.create(projectId), {
+  const response = await fetchWithAuth(API_ENDPOINTS.create(projectId), {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({title: 'New Chat'}),
@@ -29,7 +30,7 @@ async function createTopic(projectId: string): Promise<ITopic> {
 }
 
 async function deleteTopic(projectId: string, topicId: Types.ObjectId): Promise<void> {
-  const response = await fetch(API_ENDPOINTS.delete(projectId, topicId.toString()), {
+  const response = await fetchWithAuth(API_ENDPOINTS.delete(projectId, topicId.toString()), {
     method: 'DELETE',
   });
 
@@ -39,7 +40,7 @@ async function deleteTopic(projectId: string, topicId: Types.ObjectId): Promise<
 }
 
 async function updateTopic(projectId: string, topicId: string, newTitle: string): Promise<Topic> {
-  const response = await fetch(API_ENDPOINTS.update(projectId, topicId), {
+  const response = await fetchWithAuth(API_ENDPOINTS.update(projectId, topicId), {
     method: 'PUT',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ title: newTitle }),

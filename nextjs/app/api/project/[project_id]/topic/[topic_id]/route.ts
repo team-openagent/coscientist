@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Topic, User, Project } from '@/domain/model';
+import { Topic, User, Project } from '@/lib/model';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getUID } from '@/lib/auth';
 import { Types } from 'mongoose';

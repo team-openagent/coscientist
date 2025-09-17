@@ -3,6 +3,7 @@
 import { use, useState } from 'react';
 import { GraphAnnotation } from '@/react_agent/state';
 import { z } from 'zod';
+import { fetchWithAuth } from '@/lib/utils';
 
 interface Result {
   data: {
@@ -23,7 +24,7 @@ export default function Page({ params }: { params: Promise<{ project_id: string 
 
   const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    const response = await fetch(`/api/project/${projectId}/topic/${topicId}/completion`, {
+    const response = await fetchWithAuth(`/api/project/${projectId}/topic/${topicId}/completion`, {
       method: 'POST',
       body: JSON.stringify({ input_query: prompt }),
     });

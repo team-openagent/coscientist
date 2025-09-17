@@ -4,7 +4,7 @@ import { defaultConfiguration } from '@/react_agent/configuration';
 import { GraphAnnotation } from '@/react_agent/state';
 import { getUID } from '@/lib/auth';
 import { connectToDatabase } from '@/lib/mongodb';
-import { User, Project, IUser } from '@/domain/model';
+import { User, Project, IUser } from '@/lib/model';
 import { Types } from 'mongoose';
 
 export async function POST(

@@ -1,10 +1,10 @@
 import { NextRequest } from 'next/server';
-import { graph } from '@/react_agent/graph';
-import { defaultConfiguration } from '@/react_agent/configuration';
-import { GraphAnnotation } from '@/react_agent/state';
+import { graph } from '@/lib/react_agent/graph';
+import { defaultConfiguration } from '@/lib/react_agent/configuration';
+import { GraphAnnotation } from '@/lib/react_agent/state';
 import { getUID } from '@/lib/auth';
-import { connectToDatabase } from '@/lib/mongodb';
-import { User, Project, IUser } from '@/lib/model';
+import { connectToDatabase } from '@/lib/mongo/connection';
+import { User, Project, IUser } from '@/lib/mongo/model';
 import { Types } from 'mongoose';
 
 export async function POST(request: NextRequest) {

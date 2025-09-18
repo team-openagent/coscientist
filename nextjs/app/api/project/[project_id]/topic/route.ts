@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Topic, ITopic, User, IUser, Project, IProject } from '@/lib/model';
-import { connectToDatabase } from '@/lib/mongodb';
+import { Topic, ITopic, User, IUser, Project, IProject } from '@/lib/mongo/model';
+import { connectToDatabase } from '@/lib/mongo/connection';
 import { getUID } from '@/lib/auth';
 import { Types } from 'mongoose';
 

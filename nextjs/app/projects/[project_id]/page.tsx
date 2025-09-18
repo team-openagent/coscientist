@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, use } from 'react';
-import { IReference } from '@/lib/model';
+import { IReference } from '@/lib/mongo/model';
 import { ViewColumnsIcon } from '@heroicons/react/24/outline';
 import { fetchWithAuth } from '@/lib/utils';
 import dynamic from 'next/dynamic';

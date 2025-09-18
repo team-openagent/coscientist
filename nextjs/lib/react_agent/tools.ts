@@ -7,7 +7,7 @@ import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
 import { RecursiveCharacterTextSplitter} from "@langchain/textsplitters";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase } from "@/lib/mongo/connection";
 const searchTavily = new TavilySearch({
   maxResults: 3,
 });

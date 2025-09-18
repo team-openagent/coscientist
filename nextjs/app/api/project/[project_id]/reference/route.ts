@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import { connectToDatabase } from '@/lib/mongo/connection';
 import { getUID } from '@/lib/auth';
-import { Reference, IReference, User, Project, Team, IProject, ITeam, IUser } from '@/lib/model';
+import { Reference, IReference, User, Project, Team, IProject, ITeam, IUser } from '@/lib/mongo/model';
 import { Types } from 'mongoose';
 
 export async function POST(

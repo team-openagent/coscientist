@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import app from '@/lib/firebase-admin';
 import { getAuth } from 'firebase-admin/auth';
 import jwt from 'jsonwebtoken';
-import { connectToDatabase } from '@/lib/mongodb';
-import { User, IUser, Team, ITeam } from '@/lib/model';
+import { connectToDatabase } from '@/lib/mongo/connection';
+import { User, IUser, Team, ITeam } from '@/lib/mongo/model';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 

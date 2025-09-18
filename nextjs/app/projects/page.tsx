@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { IProject, ITeam } from '@/lib/model';
+import { IProject, ITeam } from '@/lib/mongo/model';
 import { TrashIcon, ChevronDownIcon, CogIcon, ArrowRightOnRectangleIcon, ClockIcon, UserGroupIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { formatDate, fetchWithAuth } from '@/lib/utils';
 

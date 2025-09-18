@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IReference, ITopic } from '@/lib/model';
+import { IReference, ITopic } from '@/lib/mongo/model';
 import { fetchWithAuth } from '@/lib/utils';
 import ChatHead from './ChatHead';
 import ChatInput from './ChatInput';

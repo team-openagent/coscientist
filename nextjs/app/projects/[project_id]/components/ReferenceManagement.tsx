@@ -6,7 +6,7 @@ import {
   TrashIcon, 
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
-import { IReference } from '@/lib/model';
+import { IReference } from '@/lib/mongo/model';
 import { getTypeIcon, getTypeLabel } from '@/app/projects/[project_id]/utils/referenceUtils';
 import AddPanel from './AddPanel';
 import DiscoverPanel from './DiscoverPanel';

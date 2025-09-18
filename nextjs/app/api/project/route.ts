@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUID } from '@/lib/auth';
-import { Project, IProject, Team, ITeam, User, IUser} from '@/lib/model';
+import { Project, IProject, Team, ITeam, User, IUser} from '@/lib/mongo/model';
 
 
 export async function GET(request: NextRequest) {

@@ -9,7 +9,7 @@ import { z } from "zod";
 import { v4 as uuidv4 } from 'uuid';
 
 // Setting store
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase } from "@/lib/mongo/connection";
 const client = (await connectToDatabase()).connection.getClient();
 
 import { MongoDBStore } from "@langchain/mongodb";

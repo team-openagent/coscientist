@@ -9,7 +9,7 @@ import {
   TrashIcon, 
   ChatBubbleLeftRightIcon 
 } from '@heroicons/react/24/outline';
-import { ITopic } from '@/lib/model';
+import { ITopic } from '@/lib/mongo/model';
 import { Types } from 'mongoose';
 import { fetchWithAuth } from '@/lib/utils';
 

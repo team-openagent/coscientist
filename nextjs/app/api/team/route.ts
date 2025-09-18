@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUID } from '@/lib/auth';
-import { Team, ITeam, User, IUser } from '@/lib/model';
-import { connectToDatabase } from '@/lib/mongodb';
+import { Team, ITeam, User, IUser } from '@/lib/mongo/model';
+import { connectToDatabase } from '@/lib/mongo/connection';
 
 export async function GET(request: NextRequest) {
   console.log("GET request");

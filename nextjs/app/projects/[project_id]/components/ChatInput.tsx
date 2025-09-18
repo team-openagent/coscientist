@@ -7,7 +7,7 @@ import {
   PhotoIcon
 } from '@heroicons/react/24/outline';
 
-import { IReference } from '@/lib/model';
+import { IReference } from '@/lib/mongo/model';
 
 interface ChatInputProps {
   inputValue: string;

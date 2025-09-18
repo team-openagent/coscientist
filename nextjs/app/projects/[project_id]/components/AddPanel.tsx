@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { PlusIcon, MagnifyingGlassIcon, XMarkIcon, DocumentIcon } from '@heroicons/react/24/outline';
-import { IReference } from '@/lib/model';
+import { IReference } from '@/lib/mongo/model';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytesResumable } from 'firebase/storage';
 import { fetchWithAuth } from '@/lib/utils';

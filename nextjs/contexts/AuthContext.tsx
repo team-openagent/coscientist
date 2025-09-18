@@ -38,6 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       signInWithPopup(auth, googleProvider).then((result) => {
+        console.log("signInWithGoogle result", result);
         result.user.getIdToken().then((token) => {
           fetch('/api/login', {
             method: 'POST',

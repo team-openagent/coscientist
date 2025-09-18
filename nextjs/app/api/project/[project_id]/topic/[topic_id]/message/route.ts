@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import { connectToDatabase } from '@/lib/mongo/connection';
 import { getUID } from '@/lib/auth';
-import { User, Project, IUser, IProject, ITeam, IMessageHistory, MessageHistory } from '@/lib/model';
+import { User, Project, IUser, IProject, ITeam, IMessageHistory, MessageHistory } from '@/lib/mongo/model';
 import { Types } from 'mongoose';
-import { MongoDBCheckpointer } from '@/lib/mongodb';
+import { MongoDBCheckpointer } from '@/lib/mongo/connection';
 import { CheckpointTuple } from '@langchain/langgraph-checkpoint';
 
 // Define types for message data

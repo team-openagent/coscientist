@@ -17,7 +17,7 @@ import DragDrop from 'editorjs-drag-drop';
 import Shortcut from '@codexteam/shortcuts';
 import EJLaTeX from 'editorjs-latex';
 
-import { IPaper } from '@/lib/model';
+import { IPaper } from '@/lib/mongo/model';
 
 interface PaperEditorProps {
   holder: string;

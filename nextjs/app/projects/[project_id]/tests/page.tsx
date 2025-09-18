@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useState } from 'react';
-import { GraphAnnotation } from '@/react_agent/state';
+import { GraphAnnotation } from '@/lib/react_agent/state';
 import { z } from 'zod';
 import { fetchWithAuth } from '@/lib/utils';
 

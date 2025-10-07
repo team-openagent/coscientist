@@ -2,20 +2,20 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { signInWithGoogle } = useAuth();
-  const router = useRouter();
 
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
       setError('');
       await signInWithGoogle();
-      router.push('/projects'); // Redirect to home page after successful login
+
+      window.location.reload();
+      window.location.href = '/projects';
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in with Google';
       setError(errorMessage);

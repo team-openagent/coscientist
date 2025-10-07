@@ -100,41 +100,6 @@ body {
   }
 }
 
-.math-input-wrapper {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 5px;
-}
-
-.math-preview {
-  min-height: 50px;
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #d3d3d3;
-  font-size: 20px;
-  text-align: center;
-}
-
-.math-input {
-  border: 1px solid #d3d3d3;
-  background: 0 0;
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-}
-
-.math-input-wrapper .math-input {
-  display: none;
-}
-
-.math-input-wrapper .math-preview {
-  display: block;
-}
-.math-input-wrapper.show-input .math-input {
-  display: block;
-}
-
 .errorMessage {
   color: red;
 }

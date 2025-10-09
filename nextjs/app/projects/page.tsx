@@ -46,9 +46,6 @@ export default function ProjectsPage() {
   const fetchTeams = async () => {
     try {
       const response = await fetchWithAuth('/api/team');
-      //if (response.status === 401) { 
-      //  window.location.href = '/login';
-      //}
       if (!response.ok) { 
         throw new Error('Failed to fetch teams'); 
       }
